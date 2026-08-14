@@ -1,0 +1,20 @@
+GET
+/spot-v2/api/spot/instruments/ticker_one
+false
+UriParams: {"instrument_id": "ETH/USDT"}
+{
+  "code": 200,
+  "message": null,
+  "data": {
+    "trade_pair_name": "BTC/USDT",
+    "last_price": "29837.28",
+    "highest_bid": "29837.28",
+    "lowest_ask": "29837.36",
+    "highest_price_24h": "30540.68",
+    "lowest_price_24h": "29750.13",
+    "volume24h": "100667929.3458",
+    "chg24h": "-0.0100",
+    "chg0h": "-0.0100",
+    "amount24h": "100667929.3458"
+  }
+}

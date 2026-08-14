@@ -1,0 +1,35 @@
+GET
+/spot-v2/api/spot/instruments/ticker_list
+false
+UriParams: {}
+{
+  "code": 200,
+  "message": null,
+  "data": 
+    [
+      {
+        "trade_pair_name": "BRISE/USDT",
+        "last_price": "0.00000047694",
+        "highest_bid": "0.00000046030",
+        "lowest_ask": "0.00000049376",
+        "highest_price_24h": "0.00000048356",
+        "lowest_price_24h": "0.00000033247",
+        "volume24h": "3589.12",
+        "chg24h": "0.4345",
+        "chg0h": "0.4345",
+        "amount24h": "3589.12"
+      },
+      {
+        "trade_pair_name": "DODO/USDT",
+        "last_price": "0.1878",
+        "highest_bid": "0.1876",
+        "lowest_ask": "0.1882",
+        "highest_price_24h": "0.1982",
+        "lowest_price_24h": "0.1877",
+        "volume24h": "379585.2",
+        "chg24h": "-0.0244",
+        "chg0h": "-0.0398",
+        "amount24h": "379585.2"
+      }
+    ]
+}

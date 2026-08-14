@@ -1,0 +1,20 @@
+GET
+/spot-v2/api/spot/instruments/trade_pair_one
+false
+UriParams: {"instrument_id": "ETH/USDT"}
+{
+  "code": 200,
+  "message": null,
+  "data": {
+    "trade_pair_name": "BTC/USDT",
+    "base_asset": "BTC",
+    "quote_asset": "USDT",
+    "price_precision": "2",
+    "amount_precision": "4",
+    "taker_fee_rate": "0.001",
+    "maker_fee_rate": "0.001",
+    "min_amount": "0.0001",
+    "price_fluctuation": "0.20",
+    "min_notional": "10"
+  }
+}

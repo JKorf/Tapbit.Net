@@ -1,0 +1,34 @@
+GET
+/spot-v2/api/v1/spot/account/list
+true
+UriParams: {}
+{
+    "code":200,
+    "message":null,
+    "data":[
+      {
+        "asset":"USDT",
+        "available":"10000",
+        "frozen_balance":"0",
+        "total_balance":"0"
+      },
+      {
+        "asset":"SHIB",
+        "available":"0",
+        "frozen_balance":"0",
+        "total_balance":"0"
+      },
+      {
+        "asset":"ETH",
+        "available":"0",
+        "frozen_balance":"0",
+        "total_balance":"0"
+      },
+      {
+        "asset":"BTC",
+        "available":"0",
+        "frozen_balance":"0",
+        "total_balance":"0"
+      }
+    ]
+}

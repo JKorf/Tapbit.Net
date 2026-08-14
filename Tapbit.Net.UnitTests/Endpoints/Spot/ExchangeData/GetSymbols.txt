@@ -1,0 +1,34 @@
+GET
+/spot-v2/api/spot/instruments/trade_pair_list
+false
+UriParams: {}
+{
+  "code": 200,
+  "message": null,
+  "data": [
+    {
+      "trade_pair_name": "1INCH/USDT",
+      "base_asset": "1INCH",
+      "quote_asset": "USDT",
+      "price_precision": "3",
+      "amount_precision": "1",
+      "taker_fee_rate": "0.001",
+      "maker_fee_rate": "0.001",
+      "min_amount": "0.1",
+      "price_fluctuation": "0.20",
+      "min_notional": "10"
+    },
+    {
+      "trade_pair_name": "AAVE/USDT",
+      "base_asset": "AAVE",
+      "quote_asset": "USDT",
+      "price_precision": "1",
+      "amount_precision": "3",
+      "taker_fee_rate": "0.001",
+      "maker_fee_rate": "0.001",
+      "min_amount": "0.01",
+      "price_fluctuation": "0.50",
+      "min_notional": "10"
+    }
+  ]
+}

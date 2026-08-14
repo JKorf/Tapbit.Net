@@ -1,0 +1,38 @@
+GET
+/spot-v2/api/spot/instruments/trade_list
+false
+UriParams: {"instrument_id": "ETH/USDT"}
+{
+  "code": 200,
+  "message": null,
+  "data": [
+    [
+      "BTC/USDT",
+      "29866.01",
+      "0.2052",
+      "buy",
+      "1681728127000"
+    ],
+    [
+      "BTC/USDT",
+      "29866.01",
+      "0.3482",
+      "sell",
+      "1681728120000"
+    ],
+    [
+      "BTC/USDT",
+      "29866.64",
+      "1.0872",
+      "sell",
+      "1681728116000"
+    ],
+    [
+      "BTC/USDT",
+      "29866.82",
+      "0.6049",
+      "buy",
+      "1681728113000"
+    ]
+  ]
+}
