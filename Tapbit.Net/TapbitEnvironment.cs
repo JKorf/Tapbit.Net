@@ -13,19 +13,12 @@ namespace Tapbit.Net
         /// </summary>
         public string RestClientAddress { get; }
 
-        /// <summary>
-        /// Socket API address
-        /// </summary>
-        public string SocketClientAddress { get; }
-
         internal TapbitEnvironment(
             string name,
-            string restAddress,
-            string streamAddress) :
+            string restAddress) :
             base(name)
         {
             RestClientAddress = restAddress;
-            SocketClientAddress = streamAddress;
         }
 
         /// <summary>
@@ -59,20 +52,17 @@ namespace Tapbit.Net
         /// </summary>
         public static TapbitEnvironment Live { get; }
             = new TapbitEnvironment(TradeEnvironmentNames.Live,
-                                     TapbitApiAddresses.Default.RestClientAddress,
-                                     TapbitApiAddresses.Default.SocketClientAddress);
+                                     TapbitApiAddresses.Default.RestClientAddress);
 
         /// <summary>
         /// Create a custom environment
         /// </summary>
         /// <param name="name"></param>
         /// <param name="spotRestAddress"></param>
-        /// <param name="spotSocketStreamsAddress"></param>
         /// <returns></returns>
         public static TapbitEnvironment CreateCustom(
                         string name,
-                        string spotRestAddress,
-                        string spotSocketStreamsAddress)
-            => new TapbitEnvironment(name, spotRestAddress, spotSocketStreamsAddress);
+                        string spotRestAddress)
+            => new TapbitEnvironment(name, spotRestAddress);
     }
 }

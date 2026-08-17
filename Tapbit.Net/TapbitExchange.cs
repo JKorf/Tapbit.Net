@@ -24,14 +24,12 @@ namespace Tapbit.Net
         /// <summary>
         /// Platform metadata
         /// </summary>
-#warning TODO
         public static PlatformInfo Metadata { get; } = new PlatformInfo(
                 "Tapbit",
                 "Tapbit",
-                "",
+                "https://raw.githubusercontent.com/JKorf/Tapbit.Net/master/Tapbit.Net/Icon/icon.png",
                 "https://www.tapbit.com",
-                ["https://www.tapbit.com/openapi-docs/",
-                 ""],
+                ["https://www.tapbit.com/openapi-docs/"],
                 PlatformType.CryptoCurrencyExchange,
                 CentralizationType.Centralized,
                 TapbitEnvironment.All
@@ -60,7 +58,6 @@ namespace Tapbit.Net
             baseAsset = AssetAliases.CommonToExchangeName(baseAsset.ToUpperInvariant());
             quoteAsset = AssetAliases.CommonToExchangeName(quoteAsset.ToUpperInvariant());
 
-#warning todo
             return baseAsset + "/" + quoteAsset;
         }
 

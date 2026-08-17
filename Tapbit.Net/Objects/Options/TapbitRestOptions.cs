@@ -24,11 +24,6 @@ namespace Tapbit.Net.Objects.Options
             Default?.Set(this);
         }
 
-                 /// <summary>
-        /// UsdtPerpetualFutures API options
-        /// </summary>
-        public RestApiOptions UsdtPerpetualFuturesOptions { get; private set; } = new RestApiOptions();
-
          /// <summary>
         /// Spot API options
         /// </summary>
@@ -38,10 +33,7 @@ namespace Tapbit.Net.Objects.Options
         internal TapbitRestOptions Set(TapbitRestOptions targetOptions)
         {
             targetOptions = base.Set<TapbitRestOptions>(targetOptions);
-                        targetOptions.UsdtPerpetualFuturesOptions = UsdtPerpetualFuturesOptions.Set(targetOptions.UsdtPerpetualFuturesOptions);
-
             targetOptions.SpotOptions = SpotOptions.Set(targetOptions.SpotOptions);
-
             return targetOptions;
         }
     }

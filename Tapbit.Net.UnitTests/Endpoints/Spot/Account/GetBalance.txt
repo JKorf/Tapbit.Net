@@ -1,0 +1,14 @@
+GET
+/spot-v2/api/v1/spot/account/one
+true
+UriParams: {"asset": "ETH"}
+{
+    "code":200,
+    "message":null,
+    "data": {
+        "asset":"USDT",
+        "available":"10000",
+        "frozen_balance":"0",
+        "total_balance":"0"
+    }
+}

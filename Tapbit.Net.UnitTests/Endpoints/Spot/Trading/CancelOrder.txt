@@ -1,0 +1,10 @@
+POST
+/spot-v2/api/v1/spot/cancel_order
+true
+BodyParams: {"order_id": "123"}
+{
+  "code":200,
+  "data":{
+    "order_id":"2257616624297820160"
+  }
+}

@@ -1,7 +1,7 @@
 GET
 /spot-v2/api/spot/instruments/candles
 false
-UriParams: {"instrument_id": "ETH/USDT","period": "D"}
+UriParams: {"instrument_id": "ETH%2FUSDT","period": "D"}
 {
     "code":200,
     "message":null,

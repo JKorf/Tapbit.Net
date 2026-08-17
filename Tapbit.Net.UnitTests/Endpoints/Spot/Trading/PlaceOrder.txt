@@ -1,0 +1,11 @@
+POST
+/spot-v2/api/v1/spot/order
+true
+BodyParams: {"instrument_id": "ETH/USDT","direction": "1","quantity": 0.1,"price": 0.1}
+{
+    "code": 200,
+    "message": null,
+    "data": {
+        "order_id": "1095374216779427840"
+    }
+}

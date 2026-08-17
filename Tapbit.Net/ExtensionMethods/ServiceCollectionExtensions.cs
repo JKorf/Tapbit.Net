@@ -14,7 +14,6 @@ using Tapbit.Net.Clients;
 using Tapbit.Net.Interfaces;
 using Tapbit.Net.Interfaces.Clients;
 using Tapbit.Net.Objects.Options;
-using Tapbit.Net.SymbolOrderBooks;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -106,26 +105,16 @@ namespace Microsoft.Extensions.DependencyInjection
                 var options = serviceProvider.GetRequiredService<IOptions<TapbitRestOptions>>().Value;
                 return LibraryHelpers.CreateHttpClientMessageHandler(options);
             }).SetHandlerLifetime(Timeout.InfiniteTimeSpan);
-            services.Add(new ServiceDescriptor(typeof(ITapbitSocketClient), x => { return new TapbitSocketClient(x.GetRequiredService<IOptions<TapbitSocketOptions>>(), x.GetRequiredService<ILoggerFactory>()); }, socketClientLifeTime ?? ServiceLifetime.Singleton));
 
-            services.AddTransient<ITapbitOrderBookFactory, TapbitOrderBookFactory>();
             services.AddTransient<ITrackerFactory, TapbitTrackerFactory>();
             services.AddTransient<ITapbitTrackerFactory, TapbitTrackerFactory>();
             services.AddSingleton<ITapbitUserClientProvider, TapbitUserClientProvider>(x =>
                 new TapbitUserClientProvider(
                     x.GetRequiredService<IHttpClientFactory>().CreateClient(typeof(ITapbitRestClient).Name),
                     x.GetRequiredService<ILoggerFactory>(),
-                    x.GetRequiredService<IOptions<TapbitRestOptions>>(),
-                    x.GetRequiredService<IOptions<TapbitSocketOptions>>()));
-
-            //             services.RegisterSharedRestInterfaces(x => x.GetRequiredService<ITapbitRestClient>().UsdtPerpetualFuturesApi.SharedClient);
+                    x.GetRequiredService<IOptions<TapbitRestOptions>>()));
 
             services.RegisterSharedRestInterfaces(x => x.GetRequiredService<ITapbitRestClient>().SpotApi.SharedClient);
-
-            //             services.RegisterSharedSocketInterfaces(x => x.GetRequiredService<ITapbitSocketClient>().UsdtPerpetualFuturesApi.SharedClient);
-
-            services.RegisterSharedSocketInterfaces(x => x.GetRequiredService<ITapbitSocketClient>().SpotApi.SharedClient);
-
 
             return services;
         }

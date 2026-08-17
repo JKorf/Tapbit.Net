@@ -1,0 +1,47 @@
+GET
+/spot-v2/api/v1/spot/open_order_list
+true
+UriParams: {"instrument_id": "ETH%2FUSDT"}
+{
+  "code":200,
+  "data":[
+    {
+      "order_id":"2257615454510661632",
+      "base_asset":"BTC",
+      "quote_asset":"USDT",
+      "direction":"buy",
+      "quantity":"0.2",
+      "filled_quantity":"0.0056",
+      "amount":"7798.826",
+      "filled_amount":"218.33252",
+      "average_price":"",
+      "status":"Open",
+      "order_time":1642766269000,
+      "fee":"0.21833252",
+      "taker_fee_rate":"0.001",
+      "maker_fee_rate":"0.001",
+      "trade_pair_name":"BTC/USDT",
+      "price":"38994.13",
+      "order_type":"limit"
+    },
+    {
+      "order_id":"2257615041262632960",
+      "base_asset":"BTC",
+      "quote_asset":"USDT",
+      "direction":"buy",
+      "quantity":"1",
+      "filled_quantity":"0",
+      "amount":"38000",
+      "filled_amount":"0",
+      "average_price":"",
+      "status":"Open",
+      "order_time":1642766170000,
+      "fee":"0",
+      "taker_fee_rate":"0.001",
+      "maker_fee_rate":"0.001",
+      "trade_pair_name":"BTC/USDT",
+      "price":"38000",
+      "order_type":"limit"
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+using CryptoExchange.Net.Objects.Errors;
 using CryptoExchange.Net.Testing;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -35,20 +36,48 @@ namespace Tapbit.Net.UnitTests
             if (!ShouldRun())
                 return;
 
-#warning Implement error response
-            //var result = await CreateClient().SpotApi.ExchangeData.GetTickerAsync("TSTTST", default);
+            var result = await CreateClient().SpotApi.ExchangeData.GetOrderBookAsync("TSTTST", 12, default);
 
-            //Assert.That(result.Success, Is.False);
-            //Assert.That(result.Error.Code, Is.EqualTo(-1121));
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Error.Code, Is.EqualTo(11001));
+            Assert.That(result.Error.ErrorType, Is.EqualTo(ErrorType.InvalidParameter));
+        }
+
+        [Test]
+        public async Task TestSpotAccount()
+        {
+            var warnings = new List<Exception>();
+            await RunAndCheckResult(warnings, client => client.SpotApi.Account.GetBalancesAsync(default), true, "data");
+            await RunAndCheckResult(warnings, client => client.SpotApi.Account.GetBalanceAsync("USDT", default), true, "data");
+            foreach (var warning in warnings)
+                Assert.Warn(warning.Message);
         }
 
         [Test]
         public async Task TestSpotExchangeData()
         {
             var warnings = new List<Exception>();
-            //await RunAndCheckResult(client => client.SpotApi.ExchangeData.PingAsync(CancellationToken.None), false);
+            await RunAndCheckResult(warnings, client => client.SpotApi.ExchangeData.GetSymbolAsync("ETH/USDT", default), false, "data");
+            await RunAndCheckResult(warnings, client => client.SpotApi.ExchangeData.GetSymbolsAsync(default), false, "data");
+            await RunAndCheckResult(warnings, client => client.SpotApi.ExchangeData.GetOrderBookAsync("ETH/USDT", 5, default), false, "data");
+            await RunAndCheckResult(warnings, client => client.SpotApi.ExchangeData.GetTickerAsync("ETH/USDT", default), false, "data");
+            await RunAndCheckResult(warnings, client => client.SpotApi.ExchangeData.GetTickersAsync(default), false, "data");
+            await RunAndCheckResult(warnings, client => client.SpotApi.ExchangeData.GetKlinesAsync("ETH/USDT", Enums.KlineInterval.OneDay, default, default, default), false, "data");
+            await RunAndCheckResult(warnings, client => client.SpotApi.ExchangeData.GetRecentTradesAsync("ETH/USDT", default), false, "data");
+            await RunAndCheckResult(warnings, client => client.SpotApi.ExchangeData.GetAssetsAsync(default, default), false, "data");
             foreach (var warning in warnings)
                 Assert.Warn(warning.Message);
         }
+
+        [Test]
+        public async Task TestSpotTrading()
+        {
+            var warnings = new List<Exception>();
+            await RunAndCheckResult(warnings, client => client.SpotApi.Trading.GetClosedOrdersAsync("ETH/USDT", default, default), true, "data");
+            await RunAndCheckResult(warnings, client => client.SpotApi.Trading.GetOpenOrdersAsync("ETH/USDT", default, default), true, "data");
+            foreach (var warning in warnings)
+                Assert.Warn(warning.Message);
+        }
+
     }
 }

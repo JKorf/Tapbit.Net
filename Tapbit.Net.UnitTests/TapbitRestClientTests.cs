@@ -25,9 +25,9 @@ namespace Tapbit.Net.UnitTests
                 "/api/v3/order",
                 (uriParams, bodyParams, headers) =>
                 {
-                    return bodyParams["signature"].ToString();
+                    return headers["ACCESS-SIGN"].ToString();
                 },
-                "c8db56825ae71d6d79447849e617115f4a920fa2acdcab2b053c4b2838bd6b71",
+                "929c869e11980c5cb9c38f9583ed61c0f4193684c58ddb49d527f4a6b4414167",
                 new Parameters(TapbitExchange._parameterSerializationSettings)
                 {
                     { "symbol", "LTCBTC" },
@@ -40,7 +40,6 @@ namespace Tapbit.Net.UnitTests
         public void CheckInterfaces()
         {
             CryptoExchange.Net.Testing.TestHelpers.CheckForMissingRestInterfaces<TapbitRestClient>();
-            CryptoExchange.Net.Testing.TestHelpers.CheckForMissingSocketInterfaces<TapbitSocketClient>();
         }
     }
 }

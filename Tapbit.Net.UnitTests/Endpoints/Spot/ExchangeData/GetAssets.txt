@@ -1,7 +1,7 @@
 GET
 /spot-v2/api/spot/instruments/asset/list
 false
-UriParams: {"currency": "BTC"}
+UriParams: {"currency": "ETH"}
 {
   "code":200,
   "message":null,

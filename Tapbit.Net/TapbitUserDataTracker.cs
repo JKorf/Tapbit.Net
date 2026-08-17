@@ -20,54 +20,19 @@ namespace Tapbit.Net
         public TapbitUserSpotDataTracker(
             ILogger<TapbitUserSpotDataTracker> logger,
             ITapbitRestClient restClient,
-            ITapbitSocketClient socketClient,
             string? userIdentifier,
             SpotUserDataTrackerConfig? config = null,
             ExchangeParameters? exchangeParameters = null) : base(
                 logger,
-#warning TODO
+                restClient.SpotApi.SharedClient,
+                restClient.SpotApi.SharedClient,
                 null,
-                null,
-                null,
-                null,
+                restClient.SpotApi.SharedClient,
                 null,
                 null,
                 userIdentifier,
-                config ?? new SpotUserDataTrackerConfig(),
+                (config ?? new SpotUserDataTrackerConfig()),
                 exchangeParameters)
-        {
-
-        }
-    }
-
-    /// <inheritdoc />
-    public class TapbitUserFuturesDataTracker : UserFuturesDataTracker
-    {
-        /// <inheritdoc />
-        protected override bool WebsocketPositionUpdatesAreFullSnapshots => false;
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public TapbitUserFuturesDataTracker(
-            ILogger<TapbitUserFuturesDataTracker> logger,
-            ITapbitRestClient restClient,
-            ITapbitSocketClient socketClient,
-            string? userIdentifier,
-            FuturesUserDataTrackerConfig? config = null,
-            ExchangeParameters? exchangeParameters = null) :
-            base(logger,
-#warning TODO
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                userIdentifier,
-                config ?? new FuturesUserDataTrackerConfig(),
-                exchangeParameters: exchangeParameters)
         {
 
         }

@@ -25,8 +25,24 @@ namespace Tapbit.Net.Clients.SpotApi
         /// <inheritdoc />
         public async Task<HttpResult<TapbitBalance[]>> GetBalancesAsync(CancellationToken ct = default)
         {
-            var request = _definitions.GetOrCreate(HttpMethod.Get, _baseClient.BaseAddress, "/spot-v2/api/v1/spot/account/list", TapbitExchange.RateLimiter.Tapbit, 1, true, limitGuard: new SingleLimitGuard(1, TimeSpan.FromSeconds(1), RateLimitWindowType.Sliding));
+            var request = _definitions.GetOrCreate(HttpMethod.Get, _baseClient.BaseAddress, "/spot-v2/api/v1/spot/account/list", TapbitExchange.RateLimiter.Tapbit, 1, true, 
+                limitGuard: new SingleLimitGuard(1, TimeSpan.FromSeconds(1), RateLimitWindowType.Sliding, keySelector: SingleLimitGuard.PerApiKey));
             var result = await _baseClient.SendAsync<TapbitBalance[]>(request, null, ct).ConfigureAwait(false);
+            return result;
+        }
+
+        #endregion
+
+        #region Get Balance
+
+        /// <inheritdoc />
+        public async Task<HttpResult<TapbitBalance>> GetBalanceAsync(string asset, CancellationToken ct = default)
+        {
+            var parameters = new Parameters(TapbitExchange._parameterSerializationSettings);
+            parameters.Add("asset", asset);
+            var request = _definitions.GetOrCreate(HttpMethod.Get, _baseClient.BaseAddress, "/spot-v2/api/v1/spot/account/one", TapbitExchange.RateLimiter.Tapbit, 1, true,
+                limitGuard: new SingleLimitGuard(1, TimeSpan.FromSeconds(1), RateLimitWindowType.Sliding, keySelector: SingleLimitGuard.PerApiKey));
+            var result = await _baseClient.SendAsync<TapbitBalance>(request, parameters, ct).ConfigureAwait(false);
             return result;
         }
 

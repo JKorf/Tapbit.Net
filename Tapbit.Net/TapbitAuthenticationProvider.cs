@@ -1,3 +1,4 @@
+using CryptoExchange.Net;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Clients;
 using CryptoExchange.Net.Converters.SystemTextJson;
@@ -32,14 +33,11 @@ namespace Tapbit.Net
 
             var body = requestConfig.BodyParameters == null || requestConfig.BodyParameters.Empty ? "" : GetSerializedBody(_serializer, requestConfig.BodyParameters);
             var path = requestConfig.RequestDefinition.Path.StartsWith("/spot-v2/") ? requestConfig.RequestDefinition.Path.Substring(8) : requestConfig.RequestDefinition.Path;
+            var queryStr = requestConfig.QueryParameters?.CreateParamString(true, requestConfig.ArraySerialization);
+            path += string.IsNullOrEmpty(queryStr) ? "" : $"?{queryStr}";
             var signStr = timestamp + requestConfig.RequestDefinition.Method + path + body;
             var signature = SignHMACSHA256(signStr, SignOutputType.Hex);
             requestConfig.Headers["ACCESS-SIGN"] = signature.ToLowerInvariant();
-        }
-
-        public override Query? GetAuthenticationQuery(SocketApiClient apiClient, SocketConnection connection, Dictionary<string, object?>? context = null)
-        {
-            return null;
         }
     }
 }

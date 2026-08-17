@@ -1,6 +1,5 @@
 using CryptoExchange.Net.Interfaces.Clients;
 using Tapbit.Net.Interfaces.Clients.SpotApi;
-using Tapbit.Net.Interfaces.Clients.UsdtPerpetualFuturesApi;
 
 namespace Tapbit.Net.Interfaces.Clients
 {
@@ -9,12 +8,6 @@ namespace Tapbit.Net.Interfaces.Clients
     /// </summary>
     public interface ITapbitRestClient : IRestClient<TapbitCredentials>
     {
-        /// <summary>
-        /// UsdtPerpetualFutures API endpoints
-        /// </summary>
-        /// <see cref="ITapbitRestClientUsdtPerpetualFuturesApi"/>
-        public ITapbitRestClientUsdtPerpetualFuturesApi UsdtPerpetualFuturesApi { get; }
-
         /// <summary>
         /// Spot API endpoints
         /// </summary>

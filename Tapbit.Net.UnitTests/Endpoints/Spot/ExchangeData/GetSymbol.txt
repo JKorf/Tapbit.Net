@@ -1,7 +1,7 @@
 GET
 /spot-v2/api/spot/instruments/trade_pair_one
 false
-UriParams: {"instrument_id": "ETH/USDT"}
+UriParams: {"instrument_id": "ETH%2FUSDT"}
 {
   "code": 200,
   "message": null,

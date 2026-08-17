@@ -6,7 +6,14 @@ namespace Tapbit.Net.Interfaces.Clients.SpotApi
     /// Shared interface for Spot rest API usage
     /// </summary>
     public interface ITapbitRestClientSpotApiShared :
-        ISharedClient
+        IAssetsRestClient,
+        IBalanceRestClient,
+        IKlineRestClient,
+        IOrderBookRestClient,
+        IRecentTradeRestClient,
+        ISpotSymbolRestClient,
+        ISpotTickerRestClient,
+        ISpotOrderRestClient
     {
     }
 }

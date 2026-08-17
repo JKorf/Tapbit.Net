@@ -1,0 +1,47 @@
+GET
+/spot-v2/api/v1/spot/closed_order_list
+true
+UriParams: {"instrument_id": "ETH%2FUSDT"}
+{
+  "code":200,
+  "data":[
+    {
+      "order_id":"2257617165786660864",
+      "base_asset":"BTC",
+      "quote_asset":"USDT",
+      "direction":"buy",
+      "quantity":"0.2",
+      "filled_quantity":"0",
+      "amount":"778.826",
+      "filled_amount":"0",
+      "average_price":"",
+      "status":"Cancelled",
+      "order_time":1642766677000,
+      "fee":"0",
+      "taker_fee_rate":"0.001",
+      "maker_fee_rate":"0.001",
+      "trade_pair_name":"BTC/USDT",
+      "price":"3894.13",
+      "order_type":"limit"
+    },
+    {
+      "order_id":"2257617165715357696",
+      "base_asset":"BTC",
+      "quote_asset":"USDT",
+      "direction":"buy",
+      "quantity":"0.1",
+      "filled_quantity":"0",
+      "amount":"399.413",
+      "filled_amount":"0",
+      "average_price":"",
+      "status":"Cancelled",
+      "order_time":1642766677000,
+      "fee":"0",
+      "taker_fee_rate":"0.001",
+      "maker_fee_rate":"0.001",
+      "trade_pair_name":"BTC/USDT",
+      "price":"3994.13",
+      "order_type":"limit"
+    }
+  ]
+}

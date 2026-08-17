@@ -5,19 +5,19 @@ using System.Text.Json.Serialization;
 namespace Tapbit.Net.Enums;
 
 /// <summary>
-/// Order side
+/// Order type
 /// </summary>
-[JsonConverter(typeof(EnumConverter<OrderSide>))]
-public enum OrderSide
+[JsonConverter(typeof(EnumConverter<OrderType>))]
+public enum OrderType
 {
     /// <summary>
-    /// ["<c>buy</c>"] Buy
+    /// ["<c>limit</c>"] Limit order
     /// </summary>
-    [Map("1", "buy")]
-    Buy,
+    [Map("limit")]
+    Limit,
     /// <summary>
-    /// ["<c>sell</c>"] Sell
+    /// ["<c>market</c>"] Market order
     /// </summary>
-    [Map("2", "sell")]
-    Sell,
+    [Map("market")]
+    Market,
 }

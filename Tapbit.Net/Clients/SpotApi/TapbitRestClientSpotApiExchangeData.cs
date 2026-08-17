@@ -1,4 +1,5 @@
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Errors;
 using CryptoExchange.Net.RateLimiting.Guards;
 using Microsoft.Extensions.Logging;
 using System;
@@ -27,7 +28,8 @@ namespace Tapbit.Net.Clients.SpotApi
         /// <inheritdoc />
         public async Task<HttpResult<DateTime>> GetServerTimeAsync(CancellationToken ct = default)
         {
-            var request = _definitions.GetOrCreate(HttpMethod.Get, _baseClient.BaseAddress, "/spot-v2/api/spot/instruments/current/timestamp", TapbitExchange.RateLimiter.Tapbit, 1, false);
+            var request = _definitions.GetOrCreate(HttpMethod.Get, _baseClient.BaseAddress, "/spot-v2/api/spot/instruments/current/timestamp", TapbitExchange.RateLimiter.Tapbit, 1, false,
+                limitGuard: new SingleLimitGuard(5, TimeSpan.FromSeconds(1), RateLimitWindowType.Sliding));
             var result = await _baseClient.SendAsync<TapbitServerTime>(request, null, ct).ConfigureAwait(false);
             if (!result.Success)
                 return HttpResult.Fail<DateTime>(result);
@@ -44,7 +46,8 @@ namespace Tapbit.Net.Clients.SpotApi
         {
             var parameters = new Parameters(TapbitExchange._parameterSerializationSettings);
             parameters.Add("instrument_id", symbol);
-            var request = _definitions.GetOrCreate(HttpMethod.Get, _baseClient.BaseAddress, "/spot-v2/api/spot/instruments/trade_pair_one", TapbitExchange.RateLimiter.Tapbit, 1, false, limitGuard: new SingleLimitGuard(1, TimeSpan.FromSeconds(1), RateLimitWindowType.Sliding));
+            var request = _definitions.GetOrCreate(HttpMethod.Get, _baseClient.BaseAddress, "/spot-v2/api/spot/instruments/trade_pair_one", TapbitExchange.RateLimiter.Tapbit, 1, false,
+                limitGuard: new SingleLimitGuard(1, TimeSpan.FromSeconds(1), RateLimitWindowType.Sliding));
             var result = await _baseClient.SendAsync<TapbitSymbol>(request, parameters, ct).ConfigureAwait(false);
             return result;
         }
@@ -56,7 +59,8 @@ namespace Tapbit.Net.Clients.SpotApi
         /// <inheritdoc />
         public async Task<HttpResult<TapbitSymbol[]>> GetSymbolsAsync(CancellationToken ct = default)
         {
-            var request = _definitions.GetOrCreate(HttpMethod.Get, _baseClient.BaseAddress, "/spot-v2/api/spot/instruments/trade_pair_list", TapbitExchange.RateLimiter.Tapbit, 1, false, limitGuard: new SingleLimitGuard(1, TimeSpan.FromSeconds(1), RateLimitWindowType.Sliding));
+            var request = _definitions.GetOrCreate(HttpMethod.Get, _baseClient.BaseAddress, "/spot-v2/api/spot/instruments/trade_pair_list", TapbitExchange.RateLimiter.Tapbit, 1, false,
+                limitGuard: new SingleLimitGuard(1, TimeSpan.FromSeconds(1), RateLimitWindowType.Sliding));
             var result = await _baseClient.SendAsync<TapbitSymbol[]>(request, null, ct).ConfigureAwait(false);
             return result;
         }
@@ -74,8 +78,15 @@ namespace Tapbit.Net.Clients.SpotApi
             var parameters = new Parameters(TapbitExchange._parameterSerializationSettings);
             parameters.Add("instrument_id", symbol);
             parameters.Add("depth", depth);
-            var request = _definitions.GetOrCreate(HttpMethod.Get, _baseClient.BaseAddress, "/spot-v2/api/spot/instruments/depth", TapbitExchange.RateLimiter.Tapbit, 1, false, limitGuard: new SingleLimitGuard(2, TimeSpan.FromSeconds(1), RateLimitWindowType.Sliding));
+            var request = _definitions.GetOrCreate(HttpMethod.Get, _baseClient.BaseAddress, "/spot-v2/api/spot/instruments/depth", TapbitExchange.RateLimiter.Tapbit, 1, false, 
+                limitGuard: new SingleLimitGuard(2, TimeSpan.FromSeconds(1), RateLimitWindowType.Sliding));
             var result = await _baseClient.SendAsync<TapbitOrderBook>(request, parameters, ct).ConfigureAwait(false);
+            if (!result.Success)
+                return result;
+
+            if (result.Data.Asks.Length == 0 && result.Data.Bids.Length == 0)
+                return HttpResult.Fail<TapbitOrderBook>(result, new ServerError(ErrorType.UnknownSymbol, "No data for symbol"));
+
             return result;
         }
 
@@ -88,7 +99,8 @@ namespace Tapbit.Net.Clients.SpotApi
         {
             var parameters = new Parameters(TapbitExchange._parameterSerializationSettings);
             parameters.Add("instrument_id", symbol);
-            var request = _definitions.GetOrCreate(HttpMethod.Get, _baseClient.BaseAddress, "/spot-v2/api/spot/instruments/ticker_one", TapbitExchange.RateLimiter.Tapbit, 1, false, limitGuard: new SingleLimitGuard(3, TimeSpan.FromSeconds(1), RateLimitWindowType.Sliding));
+            var request = _definitions.GetOrCreate(HttpMethod.Get, _baseClient.BaseAddress, "/spot-v2/api/spot/instruments/ticker_one", TapbitExchange.RateLimiter.Tapbit, 1, false, 
+                limitGuard: new SingleLimitGuard(3, TimeSpan.FromSeconds(1), RateLimitWindowType.Sliding));
             var result = await _baseClient.SendAsync<TapbitTicker>(request, parameters, ct).ConfigureAwait(false);
             return result;
         }
@@ -100,7 +112,8 @@ namespace Tapbit.Net.Clients.SpotApi
         /// <inheritdoc />
         public async Task<HttpResult<TapbitTicker[]>> GetTickersAsync(CancellationToken ct = default)
         {
-            var request = _definitions.GetOrCreate(HttpMethod.Get, _baseClient.BaseAddress, "/spot-v2/api/spot/instruments/ticker_list", TapbitExchange.RateLimiter.Tapbit, 1, false, limitGuard: new SingleLimitGuard(2, TimeSpan.FromSeconds(1), RateLimitWindowType.Sliding));
+            var request = _definitions.GetOrCreate(HttpMethod.Get, _baseClient.BaseAddress, "/spot-v2/api/spot/instruments/ticker_list", TapbitExchange.RateLimiter.Tapbit, 1, false, 
+                limitGuard: new SingleLimitGuard(2, TimeSpan.FromSeconds(1), RateLimitWindowType.Sliding));
             var result = await _baseClient.SendAsync<TapbitTicker[]>(request, null, ct).ConfigureAwait(false);
             return result;
         }
@@ -120,9 +133,10 @@ namespace Tapbit.Net.Clients.SpotApi
             var parameters = new Parameters(TapbitExchange._parameterSerializationSettings);
             parameters.Add("instrument_id", symbol);
             parameters.Add("period", interval);
-            parameters.Add("start_time", startTime);
-            parameters.Add("end_time", endTime);
-            var request = _definitions.GetOrCreate(HttpMethod.Get, _baseClient.BaseAddress, "/spot-v2/api/spot/instruments/candles", TapbitExchange.RateLimiter.Tapbit, 1, false, limitGuard: new SingleLimitGuard(4, TimeSpan.FromSeconds(1), RateLimitWindowType.Sliding));
+            parameters.Add("start_time", startTime, DateTimeSerialization.SecondsString);
+            parameters.Add("end_time", endTime, DateTimeSerialization.SecondsString);
+            var request = _definitions.GetOrCreate(HttpMethod.Get, _baseClient.BaseAddress, "/spot-v2/api/spot/instruments/candles", TapbitExchange.RateLimiter.Tapbit, 1, false, 
+                limitGuard: new SingleLimitGuard(4, TimeSpan.FromSeconds(1), RateLimitWindowType.Sliding));
             var result = await _baseClient.SendAsync<TapbitKline[]>(request, parameters, ct).ConfigureAwait(false);
             return result;
         }
@@ -136,7 +150,8 @@ namespace Tapbit.Net.Clients.SpotApi
         {
             var parameters = new Parameters(TapbitExchange._parameterSerializationSettings);
             parameters.Add("instrument_id", symbol);
-            var request = _definitions.GetOrCreate(HttpMethod.Get, _baseClient.BaseAddress, "/spot-v2/api/spot/instruments/trade_list", TapbitExchange.RateLimiter.Tapbit, 1, false, limitGuard: new SingleLimitGuard(1, TimeSpan.FromSeconds(1), RateLimitWindowType.Sliding));
+            var request = _definitions.GetOrCreate(HttpMethod.Get, _baseClient.BaseAddress, "/spot-v2/api/spot/instruments/trade_list", TapbitExchange.RateLimiter.Tapbit, 1, false, 
+                limitGuard: new SingleLimitGuard(1, TimeSpan.FromSeconds(1), RateLimitWindowType.Sliding));
             var result = await _baseClient.SendAsync<TapbitTrade[]>(request, parameters, ct).ConfigureAwait(false);
             return result;
         }
@@ -150,7 +165,8 @@ namespace Tapbit.Net.Clients.SpotApi
         {
             var parameters = new Parameters(TapbitExchange._parameterSerializationSettings);
             parameters.Add("currency", asset);
-            var request = _definitions.GetOrCreate(HttpMethod.Get, _baseClient.BaseAddress, "/spot-v2/api/spot/instruments/asset/list", TapbitExchange.RateLimiter.Tapbit, 1, false, limitGuard: new SingleLimitGuard(5, TimeSpan.FromSeconds(1), RateLimitWindowType.Sliding));
+            var request = _definitions.GetOrCreate(HttpMethod.Get, _baseClient.BaseAddress, "/spot-v2/api/spot/instruments/asset/list", TapbitExchange.RateLimiter.Tapbit, 1, false,
+                limitGuard: new SingleLimitGuard(1, TimeSpan.FromSeconds(1), RateLimitWindowType.Sliding));
             var result = await _baseClient.SendAsync<TapbitAsset[]>(request, parameters, ct).ConfigureAwait(false);
             return result;
         }

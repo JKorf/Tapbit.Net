@@ -1,7 +1,7 @@
 GET
 /spot-v2/api/spot/instruments/depth
 false
-UriParams: {"instrument_id": "ETH/USDT","depth": 10}
+UriParams: {"instrument_id": "ETH%2FUSDT","depth": 10}
 {
   "code": 200,
   "message": null,

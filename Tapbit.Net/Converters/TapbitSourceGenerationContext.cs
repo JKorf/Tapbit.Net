@@ -1,3 +1,4 @@
+using CryptoExchange.Net.Objects;
 using System;
 using System.Text.Json.Serialization;
 using Tapbit.Net.Enums;
@@ -15,9 +16,16 @@ namespace Tapbit.Net.Converters
     [JsonSerializable(typeof(TapbitResponse<TapbitTrade[]>))]
     [JsonSerializable(typeof(TapbitResponse<TapbitAsset[]>))]
     [JsonSerializable(typeof(TapbitResponse<TapbitBalance[]>))]
+    [JsonSerializable(typeof(TapbitResponse<TapbitBalance>))]
+    [JsonSerializable(typeof(TapbitResponse<TapbitOrderId>))]
+    [JsonSerializable(typeof(TapbitResponse<TapbitOrder>))]
+    [JsonSerializable(typeof(TapbitResponse<TapbitOrder[]>))]
+    [JsonSerializable(typeof(TapbitResponse<TapbitOrderResult[]>))]
     [JsonSerializable(typeof(OrderSide))]
+    [JsonSerializable(typeof(TapbitOrderRequest[]))]
 
     [JsonSerializable(typeof(string))]
+    [JsonSerializable(typeof(string[]))]
     [JsonSerializable(typeof(int?))]
     [JsonSerializable(typeof(int))]
     [JsonSerializable(typeof(long?))]
@@ -26,6 +34,7 @@ namespace Tapbit.Net.Converters
     [JsonSerializable(typeof(decimal?))]
     [JsonSerializable(typeof(DateTime))]
     [JsonSerializable(typeof(DateTime?))]
+    [JsonSerializable(typeof(Parameters))]
     internal partial class TapbitSourceGenerationContext : JsonSerializerContext
     {
     }

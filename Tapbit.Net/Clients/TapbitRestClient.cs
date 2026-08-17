@@ -5,9 +5,7 @@ using Tapbit.Net.Interfaces.Clients;
 using Tapbit.Net.Objects.Options;
 using CryptoExchange.Net.Clients;
 using Microsoft.Extensions.Options;
-using Tapbit.Net.Interfaces.Clients.UsdtPerpetualFuturesApi;
 using Tapbit.Net.Interfaces.Clients.SpotApi;
-using Tapbit.Net.Clients.UsdtPerpetualFuturesApi;
 using Tapbit.Net.Clients.SpotApi;
 
 namespace Tapbit.Net.Clients
@@ -16,9 +14,6 @@ namespace Tapbit.Net.Clients
     public class TapbitRestClient : BaseRestClient<TapbitEnvironment, TapbitCredentials>, ITapbitRestClient
     {
         #region Api clients
-
-        /// <inheritdoc />
-        public ITapbitRestClientUsdtPerpetualFuturesApi UsdtPerpetualFuturesApi { get; }
 
          /// <inheritdoc />
         public ITapbitRestClientSpotApi SpotApi { get; }
@@ -46,9 +41,7 @@ namespace Tapbit.Net.Clients
         {
             Initialize(options.Value);
 
-            UsdtPerpetualFuturesApi = AddApiClient(new TapbitRestClientUsdtPerpetualFuturesApi(loggerFactory, httpClient, options.Value));
             SpotApi = AddApiClient(new TapbitRestClientSpotApi(loggerFactory, httpClient, options.Value));
-
         }
 
         #endregion

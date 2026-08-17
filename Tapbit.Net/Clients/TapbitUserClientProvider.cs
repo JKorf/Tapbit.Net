@@ -12,9 +12,7 @@ namespace Tapbit.Net.Clients
     /// <inheritdoc />
     public class TapbitUserClientProvider : UserClientProvider<
         ITapbitRestClient,
-        ITapbitSocketClient,
         TapbitRestOptions,
-        TapbitSocketOptions,
         TapbitCredentials,
         TapbitEnvironment
         >, ITapbitUserClientProvider
@@ -27,7 +25,7 @@ namespace Tapbit.Net.Clients
         /// </summary>
         /// <param name="optionsDelegate">Options to use for created clients</param>
         public TapbitUserClientProvider(Action<TapbitOptions>? optionsDelegate = null)
-            : this(null, null, Options.Create(ApplyOptionsDelegate(optionsDelegate).Rest), Options.Create(ApplyOptionsDelegate(optionsDelegate).Socket))
+            : this(null, null, Options.Create(ApplyOptionsDelegate(optionsDelegate).Rest))
         {
         }
 
@@ -37,17 +35,13 @@ namespace Tapbit.Net.Clients
         public TapbitUserClientProvider(
             HttpClient? httpClient,
             ILoggerFactory? loggerFactory,
-            IOptions<TapbitRestOptions> restOptions,
-            IOptions<TapbitSocketOptions> socketOptions)
-            : base(httpClient, loggerFactory, restOptions, socketOptions)
+            IOptions<TapbitRestOptions> restOptions)
+            : base(httpClient, loggerFactory, restOptions)
         {
         }
 
         /// <inheritdoc />
         protected override ITapbitRestClient ConstructRestClient(HttpClient client, ILoggerFactory? loggerFactory, IOptions<TapbitRestOptions> options)
             => new TapbitRestClient(client, loggerFactory, options);
-        /// <inheritdoc />
-        protected override ITapbitSocketClient ConstructSocketClient(ILoggerFactory? loggerFactory, IOptions<TapbitSocketOptions> options)
-            => new TapbitSocketClient(options, loggerFactory);
     }
 }

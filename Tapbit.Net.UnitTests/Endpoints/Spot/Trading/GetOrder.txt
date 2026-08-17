@@ -1,0 +1,26 @@
+GET
+/spot-v2/api/v1/spot/order_info
+true
+UriParams: {"order_id": "123"}
+{
+  "code":200,
+  "data":{
+    "order_id":"2257824251095171072",
+    "base_asset":"BTC",
+    "quote_asset":"USDT",
+    "direction":"buy",
+    "quantity":"0.1",
+    "filled_quantity":"0",
+    "amount":"3000",
+    "filled_amount":"0",
+    "average_price":"0",
+    "status":"Cancelled",
+    "order_time":1642816050000,
+    "fee":"0",
+    "taker_fee_rate":"0.001",
+    "maker_fee_rate":"0.001",
+    "trade_pair_name":"BTC/USDT",
+    "price":"30000",
+    "order_type":"limit"
+  }
+}

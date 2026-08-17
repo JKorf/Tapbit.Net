@@ -22,5 +22,18 @@ namespace Tapbit.Net.Interfaces.Clients.SpotApi
         /// <param name="ct">Cancellation token</param>
         Task<HttpResult<TapbitBalance[]>> GetBalancesAsync(CancellationToken ct = default);
 
+        /// <summary>
+        /// Get account balance for an asset
+        /// <para>
+        /// Docs:<br />
+        /// <a href="https://www.tapbit.com/openapi-docs/spot_v2/private/specified_account_info/" /><br />
+        /// Endpoint:<br />
+        /// GET /spot-v2/api/v1/spot/account/one<br />
+        /// </para>
+        /// </summary>
+        /// <param name="asset">["<c>asset</c>"] The asset, for example `ETH`</param>
+        /// <param name="ct">Cancellation token</param>
+        Task<HttpResult<TapbitBalance>> GetBalanceAsync(string asset, CancellationToken ct = default);
+
     }
 }
