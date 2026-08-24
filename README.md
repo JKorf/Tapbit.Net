@@ -1,6 +1,7 @@
 # ![Tapbit.Net](https://raw.githubusercontent.com/JKorf/Tapbit.Net/main/Tapbit.Net/Icon/icon.png) Tapbit.Net  
 
 [![.NET](https://img.shields.io/github/actions/workflow/status/JKorf/Tapbit.Net/dotnet.yml?style=for-the-badge)](https://github.com/JKorf/Tapbit.Net/actions/workflows/dotnet.yml) ![License](https://img.shields.io/github/license/JKorf/Tapbit.Net?style=for-the-badge)
+![Since](https://img.shields.io/badge/since-2026-brightgreen?style=for-the-badge)
 
 Tapbit.Net is a client library for accessing the [Tapbit spot REST API](https://www.tapbit.com/openapi-docs/spot_v2/).
 
@@ -210,3 +211,5 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+
+
