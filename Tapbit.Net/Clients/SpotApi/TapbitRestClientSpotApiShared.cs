@@ -136,6 +136,7 @@ namespace Tapbit.Net.Clients.SpotApi
                      pageParams);
 
             return HttpResult.Ok(result, ExchangeHelpers.ApplyFilter(result.Data, x => x.OpenTime, request.StartTime, request.EndTime, direction)
+                    .Take(limit)
                     .Select(x =>
                         new SharedKline(
                             request.Symbol,
@@ -166,7 +167,7 @@ namespace Tapbit.Net.Clients.SpotApi
             if (!result.Success)
                 return HttpResult.Fail<SharedOrderBook>(result);
 
-            return HttpResult.Ok(result, new SharedOrderBook(result.Data.Asks, result.Data.Bids));
+            return HttpResult.Ok(result, new SharedOrderBook(SharedQuantityType.BaseAsset, result.Data.Asks, result.Data.Bids));
         }
 
         #endregion
@@ -228,7 +229,11 @@ namespace Tapbit.Net.Clients.SpotApi
                 QuantityDecimals = s.QuantityPrecision,
                 PriceDecimals = s.PricePrecision,
                 QuoteAssetType = SharedAssetType.Crypto,
-                QuoteAssetSubType = SharedAssetSubType.StableCoin
+                QuoteAssetSubType = SharedAssetSubType.StableCoin,
+                MakerFeePercentage = s.MakerFeeRate * 100,
+                TakerFeePercentage = s.TakerFeeRate * 100,
+                LowerPriceLimitPercentage = -s.PriceFluctuation * 100,
+                UpperPriceLimitPercentage = s.PriceFluctuation * 100
             };
 
             result.BaseAssetType = SharedAssetType.Crypto;
@@ -371,7 +376,10 @@ namespace Tapbit.Net.Clients.SpotApi
             if (validationError != null)
                 return HttpResult.Fail<SharedSpotOrder>(Exchange, validationError);
 
-            var order = await Trading.GetOrderAsync(request.OrderId, ct: ct).ConfigureAwait(false);
+            if (!long.TryParse(request.OrderId, out var orderId))
+                return HttpResult.Fail<SharedSpotOrder>(Exchange, new ServerError(new ErrorInfo(ErrorType.InvalidParameter, "Invalid OrderId")));
+
+            var order = await Trading.GetOrderAsync(orderId, ct: ct).ConfigureAwait(false);
             if (!order.Success)
                 return HttpResult.Fail<SharedSpotOrder>(order);
 
@@ -437,13 +445,13 @@ namespace Tapbit.Net.Clients.SpotApi
 
             // Get data
             var result = await Trading.GetClosedOrdersAsync(symbol: request.Symbol!.GetSymbol(FormatSymbol),
-                fromId: pageParams.FromId,
+                fromId: pageParams.FromId != null ? long.Parse(pageParams.FromId) : null,
                 ct: ct).ConfigureAwait(false);
             if (!result.Success)
                 return HttpResult.Fail<SharedSpotOrder[]>(result);
 
             var nextPageRequest = Pagination.GetNextPageRequest(
-                         () => Pagination.NextPageFromId(result.Data.Min(x => long.Parse(x.OrderId))),
+                         () => Pagination.NextPageFromId(result.Data.Min(x => x.OrderId) - 1),
                          result.Data.Length,
                          result.Data.Select(x => x.Timestamp),
                          request.StartTime,
@@ -451,23 +459,23 @@ namespace Tapbit.Net.Clients.SpotApi
                          pageParams);
 
             return HttpResult.Ok(result, ExchangeHelpers.ApplyFilter(result.Data, x => x.Timestamp, request.StartTime, request.EndTime, direction)
-                .Where(x => x.Status == OrderStatus.Filled || x.Status == OrderStatus.Canceled)
+                .Take(limit)
                 .Select(x =>
                     new SharedSpotOrder(
-                ExchangeSymbolCache.ParseSymbol(_topicId, EnvironmentName, null, x.Symbol),
-                x.Symbol,
-                x.OrderId.ToString(),
-                x.OrderType == OrderType.Market ? SharedOrderType.Market : SharedOrderType.Limit,
-                x.Side == OrderSide.Buy ? SharedOrderSide.Buy : SharedOrderSide.Sell,
-                ParseOrderStatus(x.Status),
-                x.Timestamp)
-                    {
-                        OrderPrice = x.Price,
-                        Fee = x.Fee,
-                        OrderQuantity = new SharedOrderQuantity(x.Quantity > 0 ? x.Quantity : null, x.QuoteQuantity > 0 ? x.QuoteQuantity : null),
-                        QuantityFilled = new SharedOrderQuantity(x.QuantityFilled, x.QuoteQuantityFilled),
-                    })
-                .ToArray(), nextPageRequest);
+                        ExchangeSymbolCache.ParseSymbol(_topicId, EnvironmentName, null, x.Symbol),
+                        x.Symbol,
+                        x.OrderId.ToString(),
+                        x.OrderType == OrderType.Market ? SharedOrderType.Market : SharedOrderType.Limit,
+                        x.Side == OrderSide.Buy ? SharedOrderSide.Buy : SharedOrderSide.Sell,
+                        ParseOrderStatus(x.Status),
+                        x.Timestamp)
+                            {
+                                OrderPrice = x.Price,
+                                Fee = x.Fee,
+                                OrderQuantity = new SharedOrderQuantity(x.Quantity > 0 ? x.Quantity : null, x.QuoteQuantity > 0 ? x.QuoteQuantity : null),
+                                QuantityFilled = new SharedOrderQuantity(x.QuantityFilled, x.QuoteQuantityFilled),
+                            })
+                        .ToArray(), nextPageRequest);
         }
 
         GetSpotOrderTradesOptions ISpotOrderRestClient.GetSpotOrderTradesOptions { get; } = new GetSpotOrderTradesOptions(_exchangeName, true)
@@ -497,7 +505,10 @@ namespace Tapbit.Net.Clients.SpotApi
             if (validationError != null)
                 return HttpResult.Fail<SharedId>(Exchange, validationError);
 
-            var order = await Trading.CancelOrderAsync(request.OrderId, ct: ct).ConfigureAwait(false);
+            if (!long.TryParse(request.OrderId, out var orderId))
+                return HttpResult.Fail<SharedId>(Exchange, new ServerError(new ErrorInfo(ErrorType.InvalidParameter, "Invalid OrderId")));
+
+            var order = await Trading.CancelOrderAsync(orderId, ct: ct).ConfigureAwait(false);
             if (!order.Success)
                 return HttpResult.Fail<SharedId>(order);
 

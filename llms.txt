@@ -1,1 +1,45 @@
-TODO
+# Tapbit.Net
+
+> Strongly typed .NET client library for the Tapbit spot REST API. Supports public market data, authenticated balances, limit order management, batch orders, user-specific REST clients, REST-backed user data tracking, and CryptoExchange.Net SharedApis.
+
+Tapbit.Net is part of the CryptoExchange.Net ecosystem. Direct and SharedApis REST methods return `HttpResult<T>` or `HttpResult`; shared symbol/cache helpers can return `ExchangeCallResult<T>`. The current public library exposes `TapbitRestClient.SpotApi` only. It does not expose a Tapbit WebSocket client or futures API. Targets netstandard2.0, netstandard2.1, net8.0, net9.0, and net10.0; Native AOT is supported on compatible .NET targets.
+
+## Critical Usage Rules
+
+- Use `TapbitRestClient`; do not invent `TapbitClient`, `TapbitSocketClient`, `FuturesApi`, or `UsdtFuturesApi`.
+- Tapbit symbols use a slash, such as `BTC/USDT`.
+- Public calls are under `SpotApi.ExchangeData`; private calls are under `SpotApi.Account` and `SpotApi.Trading`.
+- Configure authenticated access with `TapbitCredentials` and always check `.Success` before `.Data`.
+- Native `PlaceOrderAsync(symbol, side, quantity, price)` places limit orders only. It has no order-type parameter.
+- Native order IDs are `long`. `GetOrderAsync(orderId)` and `CancelOrderAsync(orderId)` do not take a symbol.
+- Use `SpotApi.SharedClient` for exchange-agnostic code and call `Discover()` before relying on optional features.
+- Shared user-trade and order-trade endpoints are unsupported. Kline and trade trackers are unsupported; the REST-backed user data tracker requires `TrackedSymbols` and `TrackTrades = false`.
+
+## Documentation
+
+- [README](https://github.com/JKorf/Tapbit.Net/blob/main/README.md): Overview, installation, supported features, basic usage, and shared API coverage
+- [Documentation Site](https://cryptoexchange.jkorf.dev/docs/exchange-clients?library=Tapbit.Net): Client guide, examples, and API reference
+- [AI API Quick Map](https://github.com/JKorf/Tapbit.Net/blob/main/docs/ai-api-map.md): Intent-to-method routing for the current spot REST surface
+- [Full LLM Context](https://github.com/JKorf/Tapbit.Net/blob/main/llms-full.txt): Detailed setup, endpoint, model, SharedApis, tracker, and anti-hallucination guidance
+
+## Examples
+
+- [AI-friendly examples directory](https://github.com/JKorf/Tapbit.Net/tree/main/Examples/ai-friendly): Self-contained examples compiled by the documentation test
+- [Spot Quickstart](https://github.com/JKorf/Tapbit.Net/blob/main/Examples/ai-friendly/01-spot-quickstart.cs): Ticker, balance, limit order, status, and cancellation
+- [Market Data](https://github.com/JKorf/Tapbit.Net/blob/main/Examples/ai-friendly/02-market-data.cs): Symbol metadata, order book, klines, recent trades, and assets
+- [Batch Orders](https://github.com/JKorf/Tapbit.Net/blob/main/Examples/ai-friendly/03-batch-orders.cs): Batch placement, per-item results, and cancellation
+- [Multi-Exchange Pattern](https://github.com/JKorf/Tapbit.Net/blob/main/Examples/ai-friendly/04-multi-exchange.cs): SharedApis discovery and exchange-agnostic ticker access
+- [Error Handling](https://github.com/JKorf/Tapbit.Net/blob/main/Examples/ai-friendly/05-error-handling.cs): `HttpResult<T>`, structured errors, and transient-only retries
+
+## Reference
+
+- [CryptoExchange.Net](https://github.com/JKorf/CryptoExchange.Net): Base abstractions, result types, rate limiting, trackers, and SharedApis
+- [CryptoClients.Net](https://github.com/JKorf/CryptoClients.Net): Bundle package for multiple exchange clients
+- [NuGet Package](https://www.nuget.org/packages/Tapbit.Net): Published Tapbit.Net package
+- [Tapbit API Docs](https://www.tapbit.com/openapi-docs/): Upstream exchange API reference
+
+## Optional
+
+- [GitHub Issues](https://github.com/JKorf/Tapbit.Net/issues): Bug reports and feature requests
+- [Discord Community](https://discord.gg/MSpeEtSY8t): Maintainer-supported discussion
+- [GitHub Sponsors](https://github.com/sponsors/JKorf): Support the maintainer

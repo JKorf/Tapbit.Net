@@ -1,1 +1,762 @@
-TODO
+# Tapbit.Net Full LLM Context
+
+> Detailed AI/LLM reference for generating correct C#/.NET code with Tapbit.Net. Use this file when `llms.txt` is too brief and the task needs concrete examples, endpoint routing, model semantics, SharedApis behavior, tracker constraints, or anti-hallucination rules.
+
+Tapbit.Net is a strongly typed client library for the Tapbit spot REST API. It is part of the CryptoExchange.Net ecosystem and uses the same result, authentication, logging, rate limiting, dependency injection, shared API, and tracker patterns as other JKorf exchange libraries.
+
+Current package version in this repository: 1.0.0.
+CryptoExchange.Net dependency/source reference: 12.5.0.
+Target frameworks: netstandard2.0, netstandard2.1, net8.0, net9.0, net10.0.
+Native AOT: supported on compatible .NET targets.
+
+Primary documentation:
+- README.md: overview, installation, supported functionality, basic examples, and shared API coverage
+- docs site: https://cryptoexchange.jkorf.dev/docs/exchange-clients?library=Tapbit.Net
+- API quick map: `docs/ai-api-map.md`
+- source interfaces: `Tapbit.Net/Interfaces/Clients/**`
+- AI examples: `Examples/ai-friendly/`
+
+## Golden Rules For AI Code Generation
+
+- Use `TapbitRestClient` for Tapbit API requests. Do not write raw `HttpClient` calls or manual signing code.
+- Use `TapbitCredentials`, not generic `ApiCredentials`, for API key setup.
+- Include `using Tapbit.Net;` when using credentials, environments, dependency injection configuration, trackers, or `TapbitExchange`.
+- The current public exchange client has one API branch: `TapbitRestClient.SpotApi`.
+- There is no public `TapbitSocketClient`, futures API, margin API, positions API, funding API, deposit/withdraw action API, transfer API, or user-trade endpoint.
+- The presence of `TapbitSocketOptions` in internal configuration scaffolding does not mean a public socket client exists.
+- Public market data does not require credentials. Balance and trading endpoints require credentials.
+- Direct and SharedApis REST calls return `HttpResult<T>` or `HttpResult`; always check `.Success` before `.Data`.
+- Shared symbol/cache helper methods can return `ExchangeCallResult<T>`.
+- Native symbols use `BASE/QUOTE`, for example `BTC/USDT`.
+- Native order placement supports limit orders only and accepts symbol, side, base-asset quantity, and price.
+- Native order IDs are `long`. Do not pass a symbol to `GetOrderAsync` or `CancelOrderAsync`.
+- Batch calls have both a top-level result and per-item `CallResult<T>` values; check both levels.
+- Reuse clients. Do not construct a REST client per request in production code.
+- Prefer dependency injection for long-running services.
+- Do not call `.Result` or `.Wait()` on asynchronous methods.
+- Do not invent endpoint names. When uncertain, inspect `Tapbit.Net/Interfaces/Clients/**`.
+- For multi-exchange code, use `SpotApi.SharedClient` and call `Discover()` to inspect supported endpoint options at runtime.
+
+## Installation
+
+```bash
+dotnet add package Tapbit.Net
+```
+
+## Required Usings
+
+Typical public REST code:
+
+```csharp
+using Tapbit.Net.Clients;
+```
+
+Authenticated trading code:
+
+```csharp
+using Tapbit.Net;
+using Tapbit.Net.Clients;
+using Tapbit.Net.Enums;
+```
+
+Batch order code:
+
+```csharp
+using Tapbit.Net.Objects.Models;
+```
+
+Shared API code:
+
+```csharp
+using CryptoExchange.Net.SharedApis;
+using Tapbit.Net.Clients;
+```
+
+Retry helpers may also need:
+
+```csharp
+using CryptoExchange.Net.Objects;
+```
+
+Dependency injection and interface injection:
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using Tapbit.Net.Interfaces.Clients;
+```
+
+## Client Setup
+
+Public market data does not require credentials:
+
+```csharp
+var client = new TapbitRestClient();
+
+var ticker = await client.SpotApi.ExchangeData.GetTickerAsync("BTC/USDT");
+if (!ticker.Success)
+{
+    Console.WriteLine(ticker.Error);
+    return;
+}
+
+Console.WriteLine(ticker.Data.LastPrice);
+```
+
+Private account and trading endpoints require credentials:
+
+```csharp
+var client = new TapbitRestClient(options =>
+{
+    options.ApiCredentials = new TapbitCredentials("API_KEY", "API_SECRET");
+});
+```
+
+The default options for newly constructed clients can also be configured once:
+
+```csharp
+TapbitRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(20);
+});
+```
+
+Use per-client options when different clients need different credentials, environments, or timeouts.
+
+## Environments
+
+`TapbitEnvironment.Live` is the only built-in environment. Do not generate a testnet environment unless the user supplies custom endpoint details.
+
+```csharp
+var live = new TapbitRestClient(options =>
+{
+    options.Environment = TapbitEnvironment.Live;
+});
+```
+
+A custom REST endpoint can be represented explicitly:
+
+```csharp
+var customEnvironment = TapbitEnvironment.CreateCustom(
+    "custom",
+    "https://example-rest");
+
+var customClient = new TapbitRestClient(options =>
+{
+    options.Environment = customEnvironment;
+});
+```
+
+`TapbitEnvironment.GetEnvironmentByName` recognizes the live environment name. `TapbitEnvironment.All` currently contains only live.
+
+## Dependency Injection
+
+```csharp
+var services = new ServiceCollection();
+
+services.AddTapbit(options =>
+{
+    options.Rest.ApiCredentials = new TapbitCredentials("API_KEY", "API_SECRET");
+});
+```
+
+Inject `ITapbitRestClient`:
+
+```csharp
+public sealed class PriceService
+{
+    private readonly ITapbitRestClient _client;
+
+    public PriceService(ITapbitRestClient client)
+    {
+        _client = client;
+    }
+
+    public async Task<decimal?> GetPriceAsync(CancellationToken ct)
+    {
+        var result = await _client.SpotApi.ExchangeData.GetTickerAsync("BTC/USDT", ct);
+        return result.Success ? result.Data.LastPrice : null;
+    }
+}
+```
+
+`AddTapbit` also registers the shared REST interfaces, `ITapbitTrackerFactory`, and `ITapbitUserClientProvider`. Although the library options contain socket-related scaffolding, DI does not register an `ITapbitSocketClient` because no such public client exists.
+
+## Result Handling Pattern
+
+Always branch on `.Success` before reading `.Data`:
+
+```csharp
+var result = await client.SpotApi.ExchangeData.GetOrderBookAsync("BTC/USDT", 10);
+if (!result.Success)
+{
+    Console.WriteLine($"Code: {result.Error?.Code}");
+    Console.WriteLine($"Message: {result.Error?.Message}");
+    Console.WriteLine($"Type: {result.Error?.ErrorType}");
+    Console.WriteLine($"Transient: {result.Error?.IsTransient}");
+    return;
+}
+
+Console.WriteLine($"Bids: {result.Data.Bids.Length}, asks: {result.Data.Asks.Length}");
+```
+
+Retry only transient failures:
+
+```csharp
+async Task<HttpResult<T>> WithRetryAsync<T>(
+    Func<Task<HttpResult<T>>> call,
+    int maxAttempts = 3)
+{
+    HttpResult<T> last = default!;
+
+    for (var attempt = 1; attempt <= maxAttempts; attempt++)
+    {
+        last = await call();
+        if (last.Success || last.Error?.IsTransient != true)
+            return last;
+
+        await Task.Delay(TimeSpan.FromMilliseconds(250 * Math.Pow(2, attempt - 1)));
+    }
+
+    return last;
+}
+```
+
+Tapbit.Net returns normal API, network, and rate-limit failures through result objects. Exceptions are reserved for cancellation, disposal, invalid local configuration, programming errors, and unsupported tracker creation.
+
+## Main API Surface
+
+```text
+TapbitRestClient
+  .SpotApi
+    .ExchangeData   public server, symbol, ticker, order book, kline, trade, asset data
+    .Account        authenticated balances
+    .Trading        authenticated limit order placement and management
+    .SharedClient   CryptoExchange.Net shared REST interfaces
+```
+
+Important: there is no second REST branch and no public socket client. Do not infer futures or WebSocket support from other CryptoExchange.Net libraries.
+
+## Intent To Method Map
+
+For a compact table, see `docs/ai-api-map.md`.
+
+Public REST tasks:
+
+```text
+Get server time -> client.SpotApi.ExchangeData.GetServerTimeAsync()
+Get one symbol -> client.SpotApi.ExchangeData.GetSymbolAsync("BTC/USDT")
+Get all symbols -> client.SpotApi.ExchangeData.GetSymbolsAsync()
+Get order book -> client.SpotApi.ExchangeData.GetOrderBookAsync("BTC/USDT", 10)
+Get one ticker -> client.SpotApi.ExchangeData.GetTickerAsync("BTC/USDT")
+Get all tickers -> client.SpotApi.ExchangeData.GetTickersAsync()
+Get klines -> client.SpotApi.ExchangeData.GetKlinesAsync("BTC/USDT", KlineInterval.OneHour)
+Get recent trades -> client.SpotApi.ExchangeData.GetRecentTradesAsync("BTC/USDT")
+Get all asset metadata -> client.SpotApi.ExchangeData.GetAssetsAsync()
+Get one asset's metadata -> client.SpotApi.ExchangeData.GetAssetsAsync("BTC")
+```
+
+Authenticated REST tasks:
+
+```text
+Get all balances -> client.SpotApi.Account.GetBalancesAsync()
+Get one balance -> client.SpotApi.Account.GetBalanceAsync("USDT")
+Place limit order -> client.SpotApi.Trading.PlaceOrderAsync("BTC/USDT", OrderSide.Buy, 0.001m, 50000m)
+Place batch orders -> client.SpotApi.Trading.PlaceMultipleOrdersAsync(orders)
+Cancel order -> client.SpotApi.Trading.CancelOrderAsync(orderId)
+Cancel batch orders -> client.SpotApi.Trading.CancelOrdersAsync(orderIds)
+Get open orders -> client.SpotApi.Trading.GetOpenOrdersAsync("BTC/USDT")
+Get closed orders -> client.SpotApi.Trading.GetClosedOrdersAsync("BTC/USDT")
+Get one order -> client.SpotApi.Trading.GetOrderAsync(orderId)
+```
+
+All methods accept an optional `CancellationToken` as their final argument. Open and closed order methods accept an optional numeric `fromId` before the cancellation token.
+
+## Symbol Format And Helpers
+
+Native Tapbit symbols use a slash:
+
+```text
+BTC/USDT
+ETH/USDT
+```
+
+Use `TapbitExchange.FormatSymbol` when constructing a native symbol from assets:
+
+```csharp
+using CryptoExchange.Net.SharedApis;
+
+var symbol = TapbitExchange.FormatSymbol("BTC", "USDT", TradingMode.Spot);
+Console.WriteLine(symbol); // BTC/USDT
+```
+
+`TapbitExchange.FormatSymbol` currently produces the same slash-delimited format for any supplied trading mode, but the client supports only `TradingMode.Spot`. Do not treat the parameter as evidence of futures support.
+
+For multi-exchange applications, prefer `SharedSymbol` and the shared interfaces so application code does not hard-code exchange formatting.
+
+## Symbol Metadata And Order Validation
+
+`GetSymbolAsync` and `GetSymbolsAsync` return `TapbitSymbol` models with:
+
+```text
+Symbol
+BaseAsset
+QuoteAsset
+PricePrecision
+QuantityPrecision
+MakerFeeRate
+TakerFeeRate
+MinQuantity
+MinNotional
+PriceFluctuation
+```
+
+Use these values to validate and round a candidate limit order before submission. `PricePrecision` and `QuantityPrecision` are decimal precision counts. Check `MinQuantity`, `MinNotional`, and the current price-fluctuation constraint. Do not assume Binance filter model names such as `LotSizeFilter` or `PriceFilter`; Tapbit exposes direct properties on `TapbitSymbol`.
+
+Fee rates and `PriceFluctuation` are native fractional rates. The shared symbol adapter converts them to percentage values for `MakerFeePercentage`, `TakerFeePercentage`, `LowerPriceLimitPercentage`, and `UpperPriceLimitPercentage`.
+
+## Market Data Models
+
+`TapbitTicker.LastPrice`, bid/ask, high/low, and volume fields are nullable. Successful HTTP retrieval does not guarantee every optional ticker field is populated.
+
+`TapbitOrderBook` contains `Bids`, `Asks`, and an optional `Timestamp`. Each entry contains `Price` and base-asset `Quantity`. Supported native and shared order-book depths are 5, 10, 50, and 100.
+
+`TapbitKline` contains `OpenTime`, OHLC prices, and volume. Supported intervals are:
+
+```text
+OneMinute, ThreeMinutes, FiveMinutes, FifteenMinutes, ThirtyMinutes
+OneHour, TwoHours, FourHours, SixHours, TwelveHours
+OneDay, OneWeek, OneMonth
+```
+
+`GetKlinesAsync` accepts optional start and end times. The shared kline adapter pages with a maximum request size of 200.
+
+`TapbitTrade` contains symbol, price, quantity, side, and timestamp. Recent trades are public market trades, not the authenticated user's fills.
+
+`GetAssetsAsync` returns asset/network metadata including deposit and withdrawal enablement, network fee, minimum withdrawal quantity, precision, and minimum confirmations. It is informational only; Tapbit.Net has no deposit-address, withdraw, or transfer action methods.
+
+## Account Data
+
+```csharp
+var balances = await client.SpotApi.Account.GetBalancesAsync();
+if (!balances.Success)
+{
+    Console.WriteLine(balances.Error);
+    return;
+}
+
+foreach (var balance in balances.Data.Where(x => x.TotalBalance != 0))
+{
+    Console.WriteLine(
+        $"{balance.Asset}: available={balance.Available}, " +
+        $"frozen={balance.FrozenBalance}, total={balance.TotalBalance}");
+}
+```
+
+Use `GetBalanceAsync(asset)` for one asset. Do not invent `GetAccountInfoAsync`; the native account surface exposes balance methods only.
+
+## Spot Limit Order Placement
+
+```csharp
+var order = await client.SpotApi.Trading.PlaceOrderAsync(
+    symbol: "BTC/USDT",
+    side: OrderSide.Buy,
+    quantity: 0.001m,
+    price: 50000m);
+
+if (!order.Success)
+{
+    Console.WriteLine(order.Error);
+    return;
+}
+
+long orderId = order.Data.OrderId;
+Console.WriteLine($"Placed order {orderId}");
+```
+
+The native method has no `OrderType`, `TimeInForce`, quote-quantity, client-order-id, stop-price, or market-order parameter. The current operation is a limit order using base-asset quantity.
+
+Although `OrderType` includes `Market` for parsing returned order data, this does not create a native market-order placement overload.
+
+## Order Query And Cancellation
+
+Native order lookup and cancellation take numeric order IDs and no symbol:
+
+```csharp
+var status = await client.SpotApi.Trading.GetOrderAsync(orderId);
+if (status.Success)
+{
+    Console.WriteLine($"{status.Data.Status}: {status.Data.QuantityFilled}/{status.Data.Quantity}");
+}
+
+var cancel = await client.SpotApi.Trading.CancelOrderAsync(orderId);
+if (!cancel.Success)
+    Console.WriteLine(cancel.Error);
+```
+
+Open and closed order lists require a symbol and optionally accept a numeric continuation id:
+
+```csharp
+var open = await client.SpotApi.Trading.GetOpenOrdersAsync("BTC/USDT");
+var closed = await client.SpotApi.Trading.GetClosedOrdersAsync(
+    "BTC/USDT",
+    fromId: 123456789L);
+```
+
+`TapbitOrder` contains a `long OrderId`, symbol/base/quote assets, side, native order type and status, requested and filled base/quote quantities, price, average price, timestamp, fee, and maker/taker fee rates.
+
+## Batch Orders
+
+```csharp
+var requests = new[]
+{
+    new TapbitOrderRequest
+    {
+        Symbol = "BTC/USDT",
+        Side = OrderSide.Buy,
+        Quantity = 0.001m,
+        Price = 50000m
+    }
+};
+
+var batch = await client.SpotApi.Trading.PlaceMultipleOrdersAsync(requests);
+if (!batch.Success)
+{
+    Console.WriteLine(batch.Error);
+    return;
+}
+
+var placedIds = new List<long>();
+foreach (var item in batch.Data)
+{
+    if (item.Success)
+        placedIds.Add(item.Data.OrderId);
+    else
+        Console.WriteLine(item.Error);
+}
+
+var cancellation = await client.SpotApi.Trading.CancelOrdersAsync(placedIds);
+```
+
+The outer `HttpResult` represents the batch HTTP/API call. Each `CallResult<TapbitOrderId>` represents one requested order. A successful outer result can still contain failed items. Batch cancellation accepts `IEnumerable<long>`.
+
+## SharedApis Multi-Exchange Pattern
+
+Use CryptoExchange.Net.SharedApis when code should work with Tapbit and other exchange clients:
+
+```csharp
+ISpotTickerRestClient tickerClient = new TapbitRestClient().SpotApi.SharedClient;
+var info = tickerClient.Discover();
+
+var symbol = new SharedSymbol(TradingMode.Spot, "BTC", "USDT");
+var ticker = await tickerClient.GetSpotTickerAsync(new GetTickerRequest(symbol));
+if (!ticker.Success)
+{
+    Console.WriteLine(ticker.Error);
+    return;
+}
+
+Console.WriteLine(ticker.Data.LastPrice);
+```
+
+Use discovery to inspect endpoint support:
+
+```csharp
+var shared = new TapbitRestClient().SpotApi.SharedClient;
+var info = shared.Discover();
+
+foreach (var feature in info.Features.Where(x => x.Supported))
+    Console.WriteLine(feature.EndpointName);
+```
+
+Shared REST calls still return `HttpResult<T>`. Shared symbol/cache helpers such as symbol support checks can return `ExchangeCallResult<T>`.
+
+## Shared Interface Coverage
+
+The spot REST shared client implements:
+
+```text
+IAssetsRestClient
+IBalanceRestClient
+IKlineRestClient
+IOrderBookRestClient
+IRecentTradeRestClient
+ISpotSymbolRestClient
+ISpotTickerRestClient
+ISpotOrderRestClient
+```
+
+Important shared behavior:
+
+- Supported trading mode: `TradingMode.Spot` only.
+- Order books declare `SharedQuantityType.BaseAsset` and depths 5, 10, 50, and 100.
+- Recent public trades have a shared limit of 50.
+- Shared klines support start/end time and page up to 200 records.
+- Shared symbols expose a catalog after symbol retrieval and support `GetSymbolsRequest` filters.
+- Shared symbol metadata includes price/quantity decimals, minimum quantity/notional, fees, price limits, and crypto/stablecoin classification.
+- Shared spot orders declare limit orders and good-till-canceled time-in-force.
+- Shared open-order requests require a symbol.
+- Shared closed orders require a symbol and are paginated from numeric order IDs.
+- Shared order IDs are represented by the common string-based `SharedId`, while native order IDs are `long`.
+- Shared `GetSpotOrderTradesAsync` and `GetSpotUserTradesAsync` are explicitly unsupported because Tapbit exposes no user-trade retrieval endpoint.
+
+Call `Discover()` instead of assuming every method inherited from `ISpotOrderRestClient` is operational.
+
+## Shared Symbol Catalog
+
+Retrieve symbols before relying on the shared catalog:
+
+```csharp
+var sharedSymbols = (ISpotSymbolRestClient)new TapbitRestClient().SpotApi.SharedClient;
+var result = await sharedSymbols.GetSpotSymbolsAsync(new GetSymbolsRequest());
+if (!result.Success)
+{
+    Console.WriteLine(result.Error);
+    return;
+}
+
+var catalog = sharedSymbols.SpotSymbolCatalog;
+foreach (var item in result.Data)
+    Console.WriteLine($"{item.DisplayName}: active={item.Active}");
+```
+
+`SupportsSpotSymbolAsync` and `GetSpotSymbolsForBaseAssetAsync` populate the cache automatically when needed. A `SharedSymbol` passed to Tapbit must use `TradingMode.Spot`; other modes cause an argument error.
+
+## User-Specific REST Clients
+
+Use `ITapbitUserClientProvider` when one process serves multiple credential sets:
+
+```csharp
+var provider = new TapbitUserClientProvider();
+
+provider.InitializeUserClient(
+    "alice",
+    new TapbitCredentials("ALICE_KEY", "ALICE_SECRET"));
+
+var alice = provider.GetRestClient("alice");
+var balance = await alice.SpotApi.Account.GetBalanceAsync("USDT");
+
+provider.ClearUserClients("alice");
+```
+
+`GetRestClient` can receive credentials on first access instead of a prior initialization. Clients are cached by user identifier. Use `ClearUserClients(userIdentifier)` when credentials change and `Clear()` to clear the provider cache.
+
+## Trackers
+
+Tapbit.Net does not provide native kline or trade trackers:
+
+```text
+CanCreateKlineTracker(...) -> false
+CanCreateTradeTracker(...) -> false
+CreateKlineTracker(...) -> throws InvalidOperationException
+CreateTradeTracker(...) -> throws InvalidOperationException
+```
+
+It does provide a REST-backed spot user data tracker through `ITapbitTrackerFactory`. Because Tapbit has no user-trade retrieval endpoint:
+
+- `SpotUserDataTrackerConfig.TrackedSymbols` must contain at least one symbol.
+- `TrackTrades` must be `false`.
+- The tracker can use shared balance and order REST endpoints, but it cannot track user fills.
+
+Do not describe this tracker as a WebSocket stream. It is separate from a native socket client, which Tapbit.Net does not expose.
+
+## Error Handling Notes
+
+Common error categories:
+
+```text
+Authentication/signature failure: verify TapbitCredentials, API permissions, timestamp, and environment. Usually permanent.
+Invalid symbol: use slash-delimited symbols or retrieve symbol metadata. Permanent until corrected.
+Invalid quantity/price/notional: validate against TapbitSymbol precision and minimums. Permanent until corrected.
+Insufficient balance or rejected order: usually permanent; surface to the caller.
+Unknown order: verify the numeric order id and account. May be expected after lifecycle changes.
+Rate limit, network, or 5xx failure: may be transient; retry only when Error.IsTransient is true.
+Unsupported shared endpoint: inspect Discover() and endpoint options; do not retry.
+```
+
+Do not assume Binance error codes. Prefer `Error.Code`, `Error.Message`, `Error.ErrorType`, and `Error.IsTransient`.
+
+## Async And Lifetime Guidance
+
+- Pass cancellation tokens to request methods in services and background jobs.
+- Reuse `TapbitRestClient` or inject `ITapbitRestClient`; do not create one client per HTTP request.
+- Do not block asynchronous calls with `.Result` or `.Wait()`.
+- Keep credentials out of source code and logs.
+- Retry only idempotent reads by default. Retrying order placement after an ambiguous network failure can duplicate an order; reconcile order state before resubmitting.
+- Batch placement and cancellation require per-item result inspection even when the outer result succeeds.
+
+## AI-Friendly Examples
+
+Use these compile-tested examples as generation references:
+
+```text
+Examples/ai-friendly/01-spot-quickstart.cs
+  Public ticker, authenticated balance, limit order, status, and cancellation.
+
+Examples/ai-friendly/02-market-data.cs
+  Symbol metadata, order book, klines, recent public trades, and assets.
+
+Examples/ai-friendly/03-batch-orders.cs
+  Batch placement, per-item CallResult handling, and batch cancellation.
+
+Examples/ai-friendly/04-multi-exchange.cs
+  SharedApis discovery and exchange-agnostic spot ticker access.
+
+Examples/ai-friendly/05-error-handling.cs
+  HttpResult fields and transient-only retry behavior.
+```
+
+The unit test `Tapbit.Net.UnitTests/AiExampleCompileTests.cs` compiles every listed C# file as a standalone console program.
+
+## Anti-Hallucination Checklist
+
+Before finalizing generated code:
+
+- Does it use `TapbitRestClient`, not `TapbitClient`?
+- Does it avoid a nonexistent `TapbitSocketClient` and all subscription methods?
+- Does it use only `SpotApi`, with no futures, margin, leverage, position, or funding branch?
+- Does it include `using Tapbit.Net;` when using credentials or environments?
+- Does every result check `.Success` before `.Data`?
+- Does it use `BASE/QUOTE` symbols such as `BTC/USDT`?
+- Does native order placement pass symbol, side, base quantity, and price without an order type?
+- Does it avoid claiming native market-order placement support?
+- Are native order IDs and pagination IDs typed as `long`?
+- Do order lookup and cancellation omit the symbol?
+- Are batch top-level and per-item results both checked?
+- Does it avoid nonexistent account info, deposit, withdraw, transfer, and user-trade methods?
+- Does shared code call `Discover()` before relying on optional endpoints?
+- Does tracker code specify `TrackedSymbols` and set `TrackTrades = false`?
+- Does retry logic avoid blindly retrying order placement?
+
+## Source Of Truth For Method Names
+
+When unsure, inspect these files instead of guessing:
+
+```text
+Tapbit.Net/Interfaces/Clients/ITapbitRestClient.cs
+Tapbit.Net/Interfaces/Clients/ITapbitUserClientProvider.cs
+Tapbit.Net/Interfaces/Clients/SpotApi/ITapbitRestClientSpotApi.cs
+Tapbit.Net/Interfaces/Clients/SpotApi/ITapbitRestClientSpotApiAccount.cs
+Tapbit.Net/Interfaces/Clients/SpotApi/ITapbitRestClientSpotApiExchangeData.cs
+Tapbit.Net/Interfaces/Clients/SpotApi/ITapbitRestClientSpotApiTrading.cs
+Tapbit.Net/Interfaces/Clients/SpotApi/ITapbitRestClientSpotApiShared.cs
+Tapbit.Net/Interfaces/ITapbitTrackerFactory.cs
+Tapbit.Net/Objects/Models/TapbitOrderRequest.cs
+Tapbit.Net/Objects/Models/TapbitSymbol.cs
+Tapbit.Net/Objects/Options/TapbitRestOptions.cs
+```
+
+Prefer interface files over memory when generating endpoint names, parameter order, ID types, and return types.
+
+## Common Wrong Patterns To Avoid
+
+Wrong client and unsupported branch:
+
+```csharp
+var client = new TapbitClient();
+var ticker = await client.FuturesApi.ExchangeData.GetTickerAsync("BTCUSDT");
+```
+
+Use:
+
+```csharp
+var client = new TapbitRestClient();
+var ticker = await client.SpotApi.ExchangeData.GetTickerAsync("BTC/USDT");
+```
+
+Wrong credentials:
+
+```csharp
+options.ApiCredentials = new ApiCredentials("key", "secret");
+```
+
+Use:
+
+```csharp
+options.ApiCredentials = new TapbitCredentials("key", "secret");
+```
+
+Wrong native order signature:
+
+```csharp
+await client.SpotApi.Trading.PlaceOrderAsync(
+    "BTCUSDT",
+    OrderSide.Buy,
+    OrderType.Market,
+    0.001m);
+```
+
+Use:
+
+```csharp
+await client.SpotApi.Trading.PlaceOrderAsync(
+    "BTC/USDT",
+    OrderSide.Buy,
+    0.001m,
+    50000m);
+```
+
+Wrong order lookup:
+
+```csharp
+await client.SpotApi.Trading.GetOrderAsync("BTC/USDT", orderId);
+```
+
+Use:
+
+```csharp
+await client.SpotApi.Trading.GetOrderAsync(orderId);
+```
+
+Wrong account method:
+
+```csharp
+await client.SpotApi.Account.GetAccountInfoAsync();
+```
+
+Use:
+
+```csharp
+await client.SpotApi.Account.GetBalancesAsync();
+```
+
+Wrong WebSocket assumption:
+
+```csharp
+var socketClient = new TapbitSocketClient();
+await socketClient.SpotApi.SubscribeToTickerUpdatesAsync("BTC/USDT", handler);
+```
+
+Use REST polling or a separate supported integration; Tapbit.Net currently has no public socket client.
+
+## Repository AI Files
+
+```text
+AGENTS.md
+  Concise assistant skill with Tapbit.Net routing rules and core examples.
+
+.github/copilot-instructions.md
+  GitHub Copilot instructions for the repository.
+
+.cursor/rules/Tapbit-net.mdc
+  Cursor rules for Tapbit.Net usage.
+
+llms.txt
+  Short LLM index and critical usage rules.
+
+llms-full.txt
+  This detailed LLM reference.
+
+docs/ai-api-map.md
+  Table-style intent-to-method map.
+
+Examples/ai-friendly/
+  Standalone examples verified by the documentation compile test.
+```
+
+## External References
+
+- Documentation: https://cryptoexchange.jkorf.dev/docs/exchange-clients?library=Tapbit.Net
+- Source: https://github.com/JKorf/Tapbit.Net
+- NuGet: https://www.nuget.org/packages/Tapbit.Net
+- Tapbit API: https://www.tapbit.com/openapi-docs/
+- CryptoExchange.Net: https://github.com/JKorf/CryptoExchange.Net

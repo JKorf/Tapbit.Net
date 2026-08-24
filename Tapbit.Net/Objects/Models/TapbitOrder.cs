@@ -13,7 +13,7 @@ public record TapbitOrder
     /// ["<c>order_id</c>"] Order id
     /// </summary>
     [JsonPropertyName("order_id")]
-    public string OrderId { get; set; } = string.Empty;
+    public long OrderId { get; set; }
     /// <summary>
     /// ["<c>base_asset</c>"] Base asset
     /// </summary>

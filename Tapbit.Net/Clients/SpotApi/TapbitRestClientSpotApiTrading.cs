@@ -71,7 +71,7 @@ namespace Tapbit.Net.Clients.SpotApi
                 if (item.Code != 200)
                     ordersResult.Add(CallResult.Fail<TapbitOrderId>(new ServerError(item.Code, _baseClient.GetErrorInfo(item.Code, item.Message!))));
                 else
-                    ordersResult.Add(CallResult.Ok(new TapbitOrderId { OrderId = item.OrderId! }));
+                    ordersResult.Add(CallResult.Ok(new TapbitOrderId { OrderId = item.OrderId!.Value }));
             }
 
             if (ordersResult.All(x => !x.Success))
@@ -85,7 +85,7 @@ namespace Tapbit.Net.Clients.SpotApi
         #region Cancel Order
 
         /// <inheritdoc />
-        public async Task<HttpResult<TapbitOrderId>> CancelOrderAsync(string orderId, CancellationToken ct = default)
+        public async Task<HttpResult<TapbitOrderId>> CancelOrderAsync(long orderId, CancellationToken ct = default)
         {
             var parameters = new Parameters(TapbitExchange._parameterSerializationSettings);
             parameters.Add("order_id", orderId);
@@ -100,7 +100,7 @@ namespace Tapbit.Net.Clients.SpotApi
         #region Cancel Orders
 
         /// <inheritdoc />
-        public async Task<HttpResult<CallResult<TapbitOrderId>[]>> CancelOrdersAsync(IEnumerable<string> orderIds, CancellationToken ct = default)
+        public async Task<HttpResult<CallResult<TapbitOrderId>[]>> CancelOrdersAsync(IEnumerable<long> orderIds, CancellationToken ct = default)
         {
             var parameters = new Parameters(TapbitExchange._parameterSerializationSettings);
             parameters.Add("orderIds", orderIds.ToArray());
@@ -116,7 +116,7 @@ namespace Tapbit.Net.Clients.SpotApi
                 if (item.Code != 200)
                     ordersResult.Add(CallResult.Fail<TapbitOrderId>(new ServerError(item.Code, _baseClient.GetErrorInfo(item.Code, item.Message!))));
                 else
-                    ordersResult.Add(CallResult.Ok(new TapbitOrderId { OrderId = item.OrderId! }));
+                    ordersResult.Add(CallResult.Ok(new TapbitOrderId { OrderId = item.OrderId!.Value }));
             }
 
             if (ordersResult.All(x => !x.Success))
@@ -132,7 +132,7 @@ namespace Tapbit.Net.Clients.SpotApi
         /// <inheritdoc />
         public async Task<HttpResult<TapbitOrder[]>> GetOpenOrdersAsync(
             string symbol,
-            string? fromId = null,
+            long? fromId = null,
             CancellationToken ct = default)
         {
             var parameters = new Parameters(TapbitExchange._parameterSerializationSettings);
@@ -151,7 +151,7 @@ namespace Tapbit.Net.Clients.SpotApi
         /// <inheritdoc />
         public async Task<HttpResult<TapbitOrder[]>> GetClosedOrdersAsync(
             string symbol,
-            string? fromId = null,
+            long? fromId = null,
             CancellationToken ct = default)
         {
             var parameters = new Parameters(TapbitExchange._parameterSerializationSettings);
@@ -168,7 +168,7 @@ namespace Tapbit.Net.Clients.SpotApi
         #region Get Order
 
         /// <inheritdoc />
-        public async Task<HttpResult<TapbitOrder>> GetOrderAsync(string orderId, CancellationToken ct = default)
+        public async Task<HttpResult<TapbitOrder>> GetOrderAsync(long orderId, CancellationToken ct = default)
         {
             var parameters = new Parameters(TapbitExchange._parameterSerializationSettings);
             parameters.Add("order_id", orderId);

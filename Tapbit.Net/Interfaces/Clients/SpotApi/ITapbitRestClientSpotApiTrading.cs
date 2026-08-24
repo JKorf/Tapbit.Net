@@ -60,7 +60,7 @@ namespace Tapbit.Net.Interfaces.Clients.SpotApi
         /// </summary>
         /// <param name="orderId">["<c>order_id</c>"] The id of the order to cancel</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<TapbitOrderId>> CancelOrderAsync(string orderId, CancellationToken ct = default);
+        Task<HttpResult<TapbitOrderId>> CancelOrderAsync(long orderId, CancellationToken ct = default);
 
         /// <summary>
         /// Cancel multiple active orders
@@ -73,7 +73,7 @@ namespace Tapbit.Net.Interfaces.Clients.SpotApi
         /// </summary>
         /// <param name="orderIds">["<c>orderIds</c>"] The ids of the orders to cancel</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<CallResult<TapbitOrderId>[]>> CancelOrdersAsync(IEnumerable<string> orderIds, CancellationToken ct = default);
+        Task<HttpResult<CallResult<TapbitOrderId>[]>> CancelOrdersAsync(IEnumerable<long> orderIds, CancellationToken ct = default);
 
         /// <summary>
         /// Get a list of open orders
@@ -89,7 +89,7 @@ namespace Tapbit.Net.Interfaces.Clients.SpotApi
         /// <param name="ct">Cancellation token</param>
         Task<HttpResult<TapbitOrder[]>> GetOpenOrdersAsync(
             string symbol,
-            string? fromId = null,
+            long? fromId = null,
             CancellationToken ct = default);
 
         /// <summary>
@@ -106,7 +106,7 @@ namespace Tapbit.Net.Interfaces.Clients.SpotApi
         /// <param name="ct">Cancellation token</param>
         Task<HttpResult<TapbitOrder[]>> GetClosedOrdersAsync(
             string symbol,
-            string? fromId = null,
+            long? fromId = null,
             CancellationToken ct = default);
 
         /// <summary>
@@ -120,7 +120,7 @@ namespace Tapbit.Net.Interfaces.Clients.SpotApi
         /// </summary>
         /// <param name="orderId">["<c>order_id</c>"] Order id</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<TapbitOrder>> GetOrderAsync(string orderId, CancellationToken ct = default);
+        Task<HttpResult<TapbitOrder>> GetOrderAsync(long orderId, CancellationToken ct = default);
 
     }
 }

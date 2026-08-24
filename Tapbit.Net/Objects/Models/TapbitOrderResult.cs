@@ -16,7 +16,7 @@ namespace Tapbit.Net.Objects.Models
         /// ["<c>order_id</c>"] Order id
         /// </summary>
         [JsonPropertyName("order_id")]
-        public string? OrderId { get; set; }
+        public long? OrderId { get; set; }
         /// <summary>
         /// ["<c>code</c>"] Code
         /// </summary>

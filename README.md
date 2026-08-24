@@ -2,15 +2,13 @@
 
 [![.NET](https://img.shields.io/github/actions/workflow/status/JKorf/Tapbit.Net/dotnet.yml?style=for-the-badge)](https://github.com/JKorf/Tapbit.Net/actions/workflows/dotnet.yml) ![License](https://img.shields.io/github/license/JKorf/Tapbit.Net?style=for-the-badge)
 
-Tapbit.Net is a client library for accessing the [Tapbit REST and Websocket API](Tapbit). 
+Tapbit.Net is a client library for accessing the [Tapbit spot REST API](https://www.tapbit.com/openapi-docs/spot_v2/).
 
 ## Features
 * Response data is mapped to descriptive models
 * Input parameters and response values are mapped to discriptive enum values where possible
 * High performance
-* Automatic websocket (re)connection management 
 * Client side rate limiting 
-* Client side order book implementation
 * Support for managing different accounts
 * Extensive logging
 * Support for different environments
@@ -23,8 +21,8 @@ The [Tapbit.Net documentation](https://cryptoexchange.jkorf.dev/docs/exchange-cl
 
 | Resource | Description |
 |--|--|
-| [Client guide](https://cryptoexchange.jkorf.dev/docs/exchange-clients?library=Tapbit.Net) | Installation, REST and WebSocket clients, authentication, dependency injection, error handling, and advanced features |
-| [Examples](https://cryptoexchange.jkorf.dev/docs/exchange-clients/examples?library=Tapbit.Net) | Common REST and WebSocket operations |
+| [Client guide](https://cryptoexchange.jkorf.dev/docs/exchange-clients?library=Tapbit.Net) | Installation, REST clients, authentication, dependency injection, error handling, and advanced features |
+| [Examples](https://cryptoexchange.jkorf.dev/docs/exchange-clients/examples?library=Tapbit.Net) | Common REST operations |
 | [API reference](https://cryptoexchange.jkorf.dev/docs/exchange-clients/reference?library=Tapbit.Net) | Client interfaces, methods, and properties |
 | [Shared API guide](https://cryptoexchange.jkorf.dev/docs/shared-api) | Common interfaces and models for working with multiple exchanges |
 
@@ -61,8 +59,9 @@ The NuGet package files are added along side the source with the latest GitHub r
 ```csharp
 // Get the ETH/USDT ticker via rest request
 var restClient = new TapbitRestClient();
-var tickerResult = await restClient.SpotApi.ExchangeData.GetTickerAsync("ETHUSDT");
-var lastPrice = tickerResult.Data.LastPrice;
+var tickerResult = await restClient.SpotApi.ExchangeData.GetTickerAsync("ETH/USDT");
+if (tickerResult.Success)
+    Console.WriteLine(tickerResult.Data.LastPrice);
 ```
 
 *Place order:*
@@ -71,25 +70,12 @@ var restClient = new TapbitRestClient(opts => {
 	opts.ApiCredentials = new TapbitCredentials("APIKEY", "APISECRET");
 });
 
-// Place Limit order to go long 0.1 for ETH at 2000
-var orderResult = await restClient.UsdtFuturesApi.Trading.PlaceOrderAsync(
-    "ETH_USDT",
+// Place a spot limit order for 0.1 ETH at 2000 USDT
+var orderResult = await restClient.SpotApi.Trading.PlaceOrderAsync(
+    "ETH/USDT",
     OrderSide.Buy,
-    OrderType.Limit,
     0.1m,
-    PositionSide.Long,
-    2000
-    );
-```
-
-*WebSocket subscription:* 
-```csharp
-// Subscribe to ETH/USDT ticker updates via the websocket API
-var socketClient = new TapbitSocketClient();
-var tickerSubscriptionResult = socketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", (update) => 
-{
-  var lastPrice = update.Data.LastPrice;
-});
+    2000m);
 ```
 
 For more examples and explanations, continue with the [Tapbit.Net documentation](https://cryptoexchange.jkorf.dev/docs/exchange-clients?library=Tapbit.Net) or browse the [compilable repository examples](https://github.com/JKorf/Tapbit.Net/tree/main/Examples).
@@ -104,21 +90,21 @@ Tapbit.Net includes AI-oriented documentation and examples for code generation t
 |[`llms.txt`](llms.txt)|Short LLM index with links to docs, examples, and critical usage rules|
 |[`llms-full.txt`](llms-full.txt)|Detailed LLM context with endpoint routing, authentication levels, code patterns, and anti-hallucination checks|
 |[`docs/ai-api-map.md`](docs/ai-api-map.md)|Table-style intent-to-method map|
-|[`Examples/ai-friendly`](Examples/ai-friendly)|Compilable single-file examples for common REST, authentication/trading, WebSocket, DI/order book, and error handling workflows|
+|[`Examples/ai-friendly`](Examples/ai-friendly)|Compilable single-file examples for spot REST, authentication/trading, batch orders, shared APIs, and error handling|
 
 See [cryptoexchange-skills-hub](https://github.com/JKorf/cryptoexchange-skills-hub) for installable skills.
 
 ## Shared / unified API
 
-The CryptoExchange.Net [Shared APIs](https://cryptoexchange.jkorf.dev/docs/shared-api) provide exchange-agnostic, unified interfaces for common operations such as retrieving tickers, order books and balances, placing orders, and subscribing to market updates.
+The CryptoExchange.Net [Shared APIs](https://cryptoexchange.jkorf.dev/docs/shared-api) provide exchange-agnostic, unified interfaces for common operations such as retrieving tickers, order books and balances, and placing orders.
 
-This allows the same application code to work with different exchange libraries. The supported Toobit API surfaces expose their shared functionality through a `SharedClient` property. Because support differs between exchanges and API surfaces, call `Discover()` to inspect the available trading modes, environments, endpoints, and subscriptions at runtime.
+This allows the same application code to work with different exchange libraries. The supported Tapbit API surface exposes shared functionality through a `SharedClient` property. Because support differs between exchanges and API surfaces, call `Discover()` to inspect the available trading modes, environments, and endpoints at runtime.
 
 ### Supported shared interfaces
 
 | API | Type | Supported interfaces |
 |--|--|--|
-| TODO | REST | `IAssetsRestClient`,.. 
+| Spot | REST | `IAssetsRestClient`, `IBalanceRestClient`, `IKlineRestClient`, `IOrderBookRestClient`, `IRecentTradeRestClient`, `ISpotSymbolRestClient`, `ISpotTickerRestClient`, `ISpotOrderRestClient` |
 
 ### Discover supported functionality
 
@@ -204,11 +190,8 @@ A Discord server is available [here](https://discord.gg/MSpeEtSY8t). For discuss
 ### Spot
 |API|Supported|Location|
 |--|--:|--|
-|TODO|✓|`restClient.SpotApi.Account`|
-### Futures
-|API|Supported|Location|
-|--|--:|--|
-|TODO|✓|`restClient.FuturesApi.ExchangeData`|
+|Market data|✓|`restClient.SpotApi.ExchangeData`|
+|Account/Trades|✓|`restClient.SpotApi.Account` / `restClient.SpotApi.Trading`|
 
 ## Support the project
 Any support is greatly appreciated.

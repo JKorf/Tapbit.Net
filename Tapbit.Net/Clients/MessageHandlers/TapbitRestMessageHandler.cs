@@ -30,7 +30,8 @@ namespace Tapbit.Net.Clients.MessageHandlers
                 return error;
 
             int? code = document!.RootElement.TryGetProperty("code", out var codeProp) ? codeProp.GetInt32() : null;
-            string? msg = document.RootElement.TryGetProperty("msg", out var msgProp) ? msgProp.GetString() : null;
+            string? msg = document.RootElement.TryGetProperty("msg", out var msgProp) ? msgProp.GetString() : null 
+                ?? (document.RootElement.TryGetProperty("message", out var messageProp) ? messageProp.GetString() : null);
             if (msg == null)
                 return new ServerError(ErrorInfo.Unknown);
 

@@ -56,10 +56,10 @@ namespace Tapbit.Net.UnitTests
             });
             var tester = new RestRequestValidator<TapbitRestClient>(client, "Endpoints/Spot/Trading", "https://openapi.tapbit.com", IsAuthenticated);
             await tester.ValidateAsync(client => client.SpotApi.Trading.PlaceOrderAsync("ETH/USDT", OrderSide.Buy, 0.1m, 0.1m), "PlaceOrder", nestedJsonProperty: "data");
-            await tester.ValidateAsync(client => client.SpotApi.Trading.CancelOrderAsync("123"), "CancelOrder", nestedJsonProperty: "data");
+            await tester.ValidateAsync(client => client.SpotApi.Trading.CancelOrderAsync(123), "CancelOrder", nestedJsonProperty: "data");
             await tester.ValidateAsync(client => client.SpotApi.Trading.GetOpenOrdersAsync("ETH/USDT"), "GetOrders", nestedJsonProperty: "data");
             await tester.ValidateAsync(client => client.SpotApi.Trading.GetClosedOrdersAsync("ETH/USDT"), "GetClosedOrders", nestedJsonProperty: "data");
-            await tester.ValidateAsync(client => client.SpotApi.Trading.GetOrderAsync("123"), "GetOrder", nestedJsonProperty: "data");
+            await tester.ValidateAsync(client => client.SpotApi.Trading.GetOrderAsync(123), "GetOrder", nestedJsonProperty: "data");
         }
 
 

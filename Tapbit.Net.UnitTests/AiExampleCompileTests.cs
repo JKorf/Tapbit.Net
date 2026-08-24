@@ -20,7 +20,8 @@ namespace Tapbit.Net.UnitTests.Documentation
             var repositoryRoot = GetRepositoryRoot();
             var examplesDirectory = Path.Combine(repositoryRoot, "Examples", "ai-friendly");
             var examples = Directory.GetFiles(examplesDirectory, "*.cs")
-                .OrderBy(x => x)
+                .Select(Path.GetFileName)
+                .OrderBy(x => x, StringComparer.Ordinal)
                 .ToArray();
 
             Assert.That(examples, Is.Not.Empty, "No AI-friendly examples found.");
@@ -32,8 +33,9 @@ namespace Tapbit.Net.UnitTests.Documentation
             Directory.CreateDirectory(outputRoot);
 
             var failures = new List<string>();
-            foreach (var example in examples)
+            foreach (var exampleNameWithExtension in examples)
             {
+                var example = Path.Combine(examplesDirectory, exampleNameWithExtension!);
                 var exampleName = Path.GetFileNameWithoutExtension(example);
                 var projectDirectory = Path.Combine(outputRoot, exampleName);
                 Directory.CreateDirectory(projectDirectory);
