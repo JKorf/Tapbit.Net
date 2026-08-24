@@ -2,7 +2,7 @@ using Tapbit.Net;
 using Tapbit.Net.Clients;
 using Tapbit.Net.Enums;
 
-const string spotSymbol = "BTCUSDT";
+const string spotSymbol = "BTC/USDT";
 
 // Replace with valid credentials or order placement will always fail
 var apiKey = "KEY";
@@ -31,11 +31,10 @@ static async Task PlaceSpotLimitOrderAsync(TapbitRestClient client)
         return;
     }
 
-    var safePrice = Math.Round(ticker.Data.LastPrice * 0.95m, 2);
+    var safePrice = Math.Round(ticker.Data.LastPrice!.Value * 0.95m, 2);
     var order = await client.SpotApi.Trading.PlaceOrderAsync(
         symbol: spotSymbol,
         side: OrderSide.Buy,
-        type: OrderType.Limit,
         quantity: 0.001m,
         price: safePrice);
 
@@ -45,15 +44,15 @@ static async Task PlaceSpotLimitOrderAsync(TapbitRestClient client)
         return;
     }
 
-    Console.WriteLine($"Placed spot order {order.Data.OrderId}, status: {order.Data.Status}");
+    Console.WriteLine($"Placed spot order {order.Data.OrderId}");
 
-    var orderStatus = await client.SpotApi.Trading.GetOrderAsync(spotSymbol, orderId: order.Data.OrderId);
+    var orderStatus = await client.SpotApi.Trading.GetOrderAsync(order.Data.OrderId);
     if (orderStatus.Success)
         Console.WriteLine($"Spot order status: {orderStatus.Data.Status}, filled: {orderStatus.Data.QuantityFilled}");
     else
         Console.WriteLine($"Failed to query spot order: {orderStatus.Error}");
 
-    var cancel = await client.SpotApi.Trading.CancelOrderAsync(spotSymbol, orderId: order.Data.OrderId);
+    var cancel = await client.SpotApi.Trading.CancelOrderAsync(order.Data.OrderId);
     Console.WriteLine(cancel.Success
         ? $"Cancelled spot order {order.Data.OrderId}"
         : $"Failed to cancel spot order: {cancel.Error}");

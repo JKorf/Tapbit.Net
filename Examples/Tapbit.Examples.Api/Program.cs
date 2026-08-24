@@ -13,7 +13,7 @@ builder.Services.AddTapbit();
 /*
 builder.Services.AddTapbit(options =>
 {
-    options.ApiCredentials = new ApiCredentials("<APIKEY>", "<APISECRET>");
+    options.ApiCredentials = new TapbitCredentials("<APIKEY>", "<APISECRET>");
     options.Rest.RequestTimeout = TimeSpan.FromSeconds(5);
 });
 */
@@ -35,9 +35,9 @@ app.MapGet("/{Symbol}", async ([FromServices] ITapbitRestClient client, string s
 
 app.MapGet("/Balances", async ([FromServices] ITapbitRestClient client) =>
 {
-    var result = await client.SpotApi.Account.GetAccountInfoAsync();
+    var result = await client.SpotApi.Account.GetBalancesAsync();
     return result.Success
-        ? Results.Ok(result.Data.Balances)
+        ? Results.Ok(result.Data)
         : Results.Problem(result.Error?.Message, statusCode: 502);
 })
 .WithOpenApi();

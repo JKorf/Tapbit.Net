@@ -6,34 +6,14 @@ using Microsoft.Extensions.Options;
 
 // REST
 var restClient = new TapbitRestClient();
-var ticker = await restClient.SpotApi.ExchangeData.GetTickerAsync("ETHUSDT");
+var ticker = await restClient.SpotApi.ExchangeData.GetTickerAsync("ETH/USDT");
 if (!ticker.Success)
 {
     Console.WriteLine($"Failed to get ticker: {ticker.Error}");
     return;
 }
 
-Console.WriteLine($"Rest client ticker price for ETHUSDT: {ticker.Data.LastPrice}");
+Console.WriteLine($"Rest client ticker price for ETH/USDT: {ticker.Data.LastPrice}");
 
 Console.WriteLine();
-Console.WriteLine("Press enter to start websocket subscription");
-Console.ReadLine();
-
-// Websocket
-// Optional, manually add logging
-var logFactory = new LoggerFactory();
-logFactory.AddProvider(new TraceLoggerProvider());
-
-var socketClient = new TapbitSocketClient(Options.Create(new TapbitSocketOptions { }), logFactory);
-var subscription = await socketClient.SpotApi.SubscribeToMiniTickerUpdatesAsync("ETHUSDT", update =>
-{
-    Console.WriteLine($"Websocket client ticker price for ETHUSDT: {update.Data.LastPrice}");
-});
-
-if (!subscription.Success)
-{
-    Console.WriteLine($"Failed to subscribe to ticker updates: {subscription.Error}");
-    return;
-}
-
 Console.ReadLine();
