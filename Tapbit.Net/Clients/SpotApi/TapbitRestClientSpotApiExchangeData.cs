@@ -166,7 +166,7 @@ namespace Tapbit.Net.Clients.SpotApi
             var parameters = new Parameters(TapbitExchange._parameterSerializationSettings);
             parameters.Add("currency", asset);
             var request = _definitions.GetOrCreate(HttpMethod.Get, _baseClient.BaseAddress, "/spot-v2/api/spot/instruments/asset/list", TapbitExchange.RateLimiter.Tapbit, 1, false,
-                limitGuard: new SingleLimitGuard(1, TimeSpan.FromSeconds(1), RateLimitWindowType.Sliding));
+                limitGuard: new SingleLimitGuard(1, TimeSpan.FromSeconds(2), RateLimitWindowType.Sliding));
             var result = await _baseClient.SendAsync<TapbitAsset[]>(request, parameters, ct).ConfigureAwait(false);
             return result;
         }
