@@ -23,20 +23,20 @@ namespace Tapbit.Net.Interfaces.Clients.SpotApi
     /// exchange client libraries.
     /// </summary>
     public interface ITapbitRestClientSpotSharedApi :
-        IGetAssetEndpoint,
-        IGetAllAssetsEndpoint,
-        IGetBalancesEndpoint,
-        IGetKlinesEndpoint,
-        IGetOrderBookEndpoint,
-        IGetRecentTradesEndpoint,
-        IGetSpotSymbolsEndpoint,
-        IGetSpotTickerEndpoint,
-        IGetAllSpotTickersEndpoint,
-        IPlaceSpotOrderEndpoint,
-        IGetSpotOrderEndpoint,
-        IGetOpenSpotOrdersEndpoint,
-        IGetClosedSpotOrdersEndpoint,
-        ICancelSpotOrderEndpoint
+        IGetAssetRest,
+        IGetAllAssetsRest,
+        IGetBalancesRest,
+        IGetKlinesRest,
+        IGetOrderBookRest,
+        IGetRecentTradesRest,
+        IGetSpotSymbolsRest,
+        IGetSpotTickerRest,
+        IGetAllSpotTickersRest,
+        IPlaceSpotOrderRest,
+        IGetSpotOrderRest,
+        IGetOpenSpotOrdersRest,
+        IGetClosedSpotOrdersRest,
+        ICancelSpotOrderRest
     {
 
     }
