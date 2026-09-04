@@ -114,6 +114,10 @@ namespace Microsoft.Extensions.DependencyInjection
                     x.GetRequiredService<ILoggerFactory>(),
                     x.GetRequiredService<IOptions<TapbitRestOptions>>()));
 
+            services.AddTransient<ITapbitSharedApiClient, TapbitSharedApiClient>();
+
+            services.RegisterSharedApi(x => x.GetRequiredService<ITapbitRestClient>().SpotApi.SharedApi);
+
             services.RegisterSharedRestInterfaces(x => x.GetRequiredService<ITapbitRestClient>().SpotApi.SharedClient);
 
             return services;

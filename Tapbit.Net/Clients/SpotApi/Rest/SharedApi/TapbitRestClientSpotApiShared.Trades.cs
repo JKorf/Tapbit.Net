@@ -14,7 +14,11 @@ namespace Tapbit.Net.Clients.SpotApi
 {
     internal partial class TapbitRestClientSpotSharedApi
     {
-        #region Recent Trades client
+        #region Get Recent Trades
+
+        async Task<ICallResult<SharedTrade[]>> IGetRecentTrades.GetRecentTradesAsync(GetRecentTradesRequest request, CancellationToken ct)
+            => await GetRecentTradesAsync(request, ct).ConfigureAwait(false);
+
         public GetRecentTradesOptions GetRecentTradesOptions { get; } = new GetRecentTradesOptions(_exchangeName, 50, false);
 
         public async Task<HttpResult<SharedTrade[]>> GetRecentTradesAsync(GetRecentTradesRequest request, CancellationToken ct)
@@ -38,6 +42,7 @@ namespace Tapbit.Net.Clients.SpotApi
                     Side = x.Side == Enums.OrderSide.Sell ? SharedOrderSide.Sell : SharedOrderSide.Buy,
                 }).ToArray());
         }
+
         #endregion
     }
 }

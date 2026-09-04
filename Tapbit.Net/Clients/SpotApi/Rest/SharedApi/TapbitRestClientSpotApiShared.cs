@@ -26,6 +26,7 @@ namespace Tapbit.Net.Clients.SpotApi
 
         public TapbitRestClientSpotSharedApi(TapbitRestClientSpotApi api)
             : base(
+                  SharedTransport.Rest,
                   api.Exchange,
                   [TradingMode.Spot],
                   () => api.Authenticated,
