@@ -140,7 +140,13 @@ namespace Tapbit.Net.Clients.SpotApi
         async Task<ICallResult<SharedSpotOrder[]>> IGetClosedSpotOrders.GetClosedSpotOrdersAsync(GetClosedOrdersRequest request, PageRequest? pageRequest, CancellationToken ct)
             => await GetClosedSpotOrdersAsync(request, pageRequest, ct).ConfigureAwait(false);
 
-        public GetSpotClosedOrdersOptions GetClosedSpotOrdersOptions { get; } = new GetSpotClosedOrdersOptions(_exchangeName, false, true, false, 20);
+        public GetSpotClosedOrdersOptions GetClosedSpotOrdersOptions { get; } = new GetSpotClosedOrdersOptions(_exchangeName, false, true, false, 20)
+        {
+            ParameterRuleOverwrites = [
+                RequestParameterRuleOverride<GetClosedOrdersRequest>.NotSupported(x => x.StartTime),
+                RequestParameterRuleOverride<GetClosedOrdersRequest>.NotSupported(x => x.EndTime)
+                ]
+        };
         public async Task<HttpResult<SharedSpotOrder[]>> GetClosedSpotOrdersAsync(GetClosedOrdersRequest request, PageRequest? pageRequest, CancellationToken ct)
         {
             var validationError = GetClosedSpotOrdersOptions.ValidateRequest(request, this);
