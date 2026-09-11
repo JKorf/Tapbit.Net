@@ -56,9 +56,9 @@ namespace Microsoft.Extensions.DependencyInjection
             options.Socket.Environment = TapbitEnvironment.GetEnvironmentByName(socketEnvName) ?? options.Socket.Environment!;
             options.Socket.ApiCredentials = options.Socket.ApiCredentials ?? options.ApiCredentials;
 
-
-            services.AddSingleton(x => Options.Options.Create(options.Rest));
-            services.AddSingleton(x => Options.Options.Create(options.Socket));
+            services.AddSingleton(Options.Options.Create(options.Rest));
+            services.AddSingleton(Options.Options.Create(options.Socket));
+            services.AddSingleton(Options.Options.Create(options));
 
             return AddTapbitCore(services, options.SocketClientLifeTime);
         }
@@ -86,8 +86,9 @@ namespace Microsoft.Extensions.DependencyInjection
             options.Socket.Environment = options.Socket.Environment ?? options.Environment ?? TapbitEnvironment.Live;
             options.Socket.ApiCredentials = options.Socket.ApiCredentials ?? options.ApiCredentials;
 
-            services.AddSingleton(x => Options.Options.Create(options.Rest));
-            services.AddSingleton(x => Options.Options.Create(options.Socket));
+            services.AddSingleton(Options.Options.Create(options.Rest));
+            services.AddSingleton(Options.Options.Create(options.Socket));
+            services.AddSingleton(Options.Options.Create(options));
 
             return AddTapbitCore(services, options.SocketClientLifeTime);
         }
@@ -117,6 +118,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddTransient<ITapbitSharedApiClient, TapbitSharedApiClient>();
 
             services.RegisterSharedApi(x => x.GetRequiredService<ITapbitRestClient>().SpotApi.SharedApi);
+
+            services.RegisterSharedApiClientCapabilities<ITapbitSharedApiClient>();
 
             services.RegisterSharedRestInterfaces(x => x.GetRequiredService<ITapbitRestClient>().SpotApi.SharedClient);
 
