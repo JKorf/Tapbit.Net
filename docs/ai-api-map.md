@@ -30,20 +30,23 @@ Every method accepts an optional `CancellationToken` as its final parameter. Ope
 
 ## Shared REST interfaces
 
-`TapbitRestClient.SpotApi.SharedClient` supports:
+`TapbitRestClient.SpotApi.SharedApi` supports:
 
 | Interface | Capability |
 |---|---|
-| `IAssetsRestClient` | Assets and network metadata |
-| `IBalanceRestClient` | Spot balances |
-| `IKlineRestClient` | Spot klines |
-| `IOrderBookRestClient` | Spot order-book snapshots |
-| `IRecentTradeRestClient` | Recent public trades |
-| `ISpotSymbolRestClient` | Spot symbol catalog and filters |
-| `ISpotTickerRestClient` | One or all spot tickers |
-| `ISpotOrderRestClient` | Limit order placement, lookup, cancellation, and order lists |
+| `IGetAssetRest` / `IGetAllAssetsRest` | One asset or all assets and network metadata |
+| `IGetBalancesRest` | Spot balances |
+| `IGetKlinesRest` | Spot klines |
+| `IGetOrderBookRest` | Spot order-book snapshots |
+| `IGetRecentTradesRest` | Recent public trades |
+| `IGetSpotSymbolsRest` | Spot symbol catalog and filters |
+| `IGetTickerRest` / `IGetAllTickersRest` | One spot ticker or all spot tickers |
+| `IPlaceSpotOrderRest` | Place a limit order |
+| `IGetSpotOrderRest` | Get one order |
+| `IGetOpenSpotOrdersRest` / `IGetClosedSpotOrdersRest` | List open or closed orders |
+| `ICancelSpotOrderRest` | Cancel an order |
 
-Call `SharedClient.Discover()` for runtime capability metadata. Shared user-trade and order-trade endpoints are present on the common interface but report `Supported = false` for Tapbit.
+Use the exchange-level `ITapbitSharedApiClient` aggregate's `GetCapability(...)` or `GetCapabilities(...)` methods for runtime capability lookup; use an API surface's `.SharedApi` property when the transport and API are known.
 
 ## Unsupported requests
 

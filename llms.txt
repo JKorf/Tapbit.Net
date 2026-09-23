@@ -12,7 +12,7 @@ Tapbit.Net is part of the CryptoExchange.Net ecosystem. Direct and SharedApis RE
 - Configure authenticated access with `TapbitCredentials` and always check `.Success` before `.Data`.
 - Native `PlaceOrderAsync(symbol, side, quantity, price)` places limit orders only. It has no order-type parameter.
 - Native order IDs are `long`. `GetOrderAsync(orderId)` and `CancelOrderAsync(orderId)` do not take a symbol.
-- Use `SpotApi.SharedClient` for exchange-agnostic code and call `Discover()` before relying on optional features.
+- Use the exchange-level `ITapbitSharedApiClient` aggregate's `GetCapability(...)` or `GetCapabilities(...)` methods for runtime capability lookup; use an API surface's `.SharedApi` property when the transport and API are known.
 - Shared user-trade and order-trade endpoints are unsupported. Kline and trade trackers are unsupported; the REST-backed user data tracker requires `TrackedSymbols` and `TrackTrades = false`.
 
 ## Documentation

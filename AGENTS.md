@@ -17,7 +17,7 @@ TapbitRestClient
     .ExchangeData
     .Account
     .Trading
-    .SharedClient
+    .SharedApi
 ```
 
 Do not generate `TapbitSocketClient`, `FuturesApi`, `UsdtFuturesApi`, `Subscribe...` methods, market orders, or user-trade endpoints. They are not part of the current public API. The tracker infrastructure is separate from a native Tapbit WebSocket client, and user-trade tracking is unsupported.
@@ -54,7 +54,7 @@ Tapbit symbols use a slash, such as `BTC/USDT`. `TapbitExchange.FormatSymbol("BT
 - Market data: `SpotApi.ExchangeData` provides server time, symbols, tickers, order books, klines, recent trades, and asset/network metadata.
 - Account: `SpotApi.Account` provides all balances or one balance by asset.
 - Trading: `SpotApi.Trading` provides limit order placement, batch placement, cancellation, batch cancellation, open orders, closed orders, and order lookup.
-- Shared APIs: `SpotApi.SharedClient` implements `IAssetsRestClient`, `IBalanceRestClient`, `IKlineRestClient`, `IOrderBookRestClient`, `IRecentTradeRestClient`, `ISpotSymbolRestClient`, `ISpotTickerRestClient`, and `ISpotOrderRestClient`.
+- Shared APIs: `SpotApi.SharedApi` implements strict V2 capabilities for assets, balances, market data, symbols, tickers, and spot order placement, retrieval, listing, and cancellation. These include `IGetAssetRest`, `IGetAllAssetsRest`, `IGetTickerRest`, `IGetAllTickersRest`, `IPlaceSpotOrderRest`, `IGetSpotOrderRest`, `IGetOpenSpotOrdersRest`, `IGetClosedSpotOrdersRest`, and `ICancelSpotOrderRest`.
 
 ## Limit order example
 
