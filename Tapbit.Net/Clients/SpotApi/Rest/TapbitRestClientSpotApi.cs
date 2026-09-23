@@ -21,6 +21,8 @@ namespace Tapbit.Net.Clients.SpotApi
     internal partial class TapbitRestClientSpotApi : RestApiClient<TapbitEnvironment, TapbitAuthenticationProvider, TapbitCredentials>, ITapbitRestClientSpotApi
     {
         #region fields 
+        private readonly TapbitRestClientSpotSharedApi _sharedApi;
+
         protected override ErrorMapping ErrorMapping => TapbitErrors.Errors;
 
         /// <inheritdoc />
@@ -45,6 +47,8 @@ namespace Tapbit.Net.Clients.SpotApi
             Account = new TapbitRestClientSpotApiAccount(this);
             ExchangeData = new TapbitRestClientSpotApiExchangeData(_logger, this);
             Trading = new TapbitRestClientSpotApiTrading(_logger, this);
+
+            _sharedApi = new TapbitRestClientSpotSharedApi(this);
         }
         #endregion
 
@@ -73,6 +77,8 @@ namespace Tapbit.Net.Clients.SpotApi
             => TapbitExchange.FormatSymbol(baseAsset, quoteAsset, tradingMode, deliverDate);
 
         /// <inheritdoc />
-        public ITapbitRestClientSpotApiShared SharedClient => this;
+        public ITapbitRestClientSpotApiShared SharedClient => _sharedApi;
+        /// <inheritdoc />
+        public ITapbitRestClientSpotSharedApi SharedApi => _sharedApi;
     }
 }

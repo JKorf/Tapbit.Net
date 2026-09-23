@@ -1,7 +1,9 @@
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Clients;
 using CryptoExchange.Net.Converters.SystemTextJson;
+using CryptoExchange.Net.Interfaces.Clients;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Testing;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -40,6 +42,24 @@ namespace Tapbit.Net.UnitTests
         public void CheckInterfaces()
         {
             CryptoExchange.Net.Testing.TestHelpers.CheckForMissingRestInterfaces<TapbitRestClient>();
+        }
+
+        [Test]
+        public void TestSpotRestSharedApiDiscoveryMatchesAggregate()
+        {
+            var (missingOptions, missingInterfaces) = TestHelpers.ValidateSharedApi(new TapbitRestClient().SpotApi.SharedApi);
+
+            Assert.That(missingOptions, Is.Empty);
+            Assert.That(missingInterfaces, Is.Empty);
+        }
+
+
+        [Test]
+        public void TestSpotRestSharedApiDoesntHaveUnsupportedCapabilities()
+        {
+            var unsupported = TestHelpers.ValidateUnsupportedCapabilities(new TapbitRestClient().SpotApi.SharedApi);
+
+            Assert.That(unsupported, Is.Empty);
         }
     }
 }

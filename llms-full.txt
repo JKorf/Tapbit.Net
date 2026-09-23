@@ -35,7 +35,7 @@ Primary documentation:
 - Prefer dependency injection for long-running services.
 - Do not call `.Result` or `.Wait()` on asynchronous methods.
 - Do not invent endpoint names. When uncertain, inspect `Tapbit.Net/Interfaces/Clients/**`.
-- For multi-exchange code, use `SpotApi.SharedClient` and call `Discover()` to inspect supported endpoint options at runtime.
+- Use the exchange-level `ITapbitSharedApiClient` aggregate's `GetCapability(...)` or `GetCapabilities(...)` methods for runtime capability lookup; use an API surface's `.SharedApi` property when the transport and API are known.
 
 ## Installation
 
@@ -231,7 +231,7 @@ TapbitRestClient
     .ExchangeData   public server, symbol, ticker, order book, kline, trade, asset data
     .Account        authenticated balances
     .Trading        authenticated limit order placement and management
-    .SharedClient   CryptoExchange.Net shared REST interfaces
+    .SharedApi   CryptoExchange.Net shared REST interfaces
 ```
 
 Important: there is no second REST branch and no public socket client. Do not infer futures or WebSocket support from other CryptoExchange.Net libraries.
@@ -444,11 +444,11 @@ The outer `HttpResult` represents the batch HTTP/API call. Each `CallResult<Tapb
 Use CryptoExchange.Net.SharedApis when code should work with Tapbit and other exchange clients:
 
 ```csharp
-ISpotTickerRestClient tickerClient = new TapbitRestClient().SpotApi.SharedClient;
-var info = tickerClient.Discover();
+IGetTickerRest tickerClient = new TapbitRestClient().SpotApi.SharedApi;
+// Use the exchange-level `ITapbitSharedApiClient` aggregate's `GetCapability(...)` or `GetCapabilities(...)` methods for runtime capability lookup; use an API surface's `.SharedApi` property when the transport and API are known.
 
 var symbol = new SharedSymbol(TradingMode.Spot, "BTC", "USDT");
-var ticker = await tickerClient.GetSpotTickerAsync(new GetTickerRequest(symbol));
+var ticker = await tickerClient.GetTickerAsync(new GetTickerRequest(symbol));
 if (!ticker.Success)
 {
     Console.WriteLine(ticker.Error);
@@ -461,8 +461,8 @@ Console.WriteLine(ticker.Data.LastPrice);
 Use discovery to inspect endpoint support:
 
 ```csharp
-var shared = new TapbitRestClient().SpotApi.SharedClient;
-var info = shared.Discover();
+var shared = new TapbitRestClient().SpotApi.SharedApi;
+// Use the exchange-level `ITapbitSharedApiClient` aggregate's `GetCapability(...)` or `GetCapabilities(...)` methods for runtime capability lookup; use an API surface's `.SharedApi` property when the transport and API are known.
 
 foreach (var feature in info.Features.Where(x => x.Supported))
     Console.WriteLine(feature.EndpointName);
@@ -475,14 +475,20 @@ Shared REST calls still return `HttpResult<T>`. Shared symbol/cache helpers such
 The spot REST shared client implements:
 
 ```text
-IAssetsRestClient
-IBalanceRestClient
-IKlineRestClient
-IOrderBookRestClient
-IRecentTradeRestClient
-ISpotSymbolRestClient
-ISpotTickerRestClient
-ISpotOrderRestClient
+IGetAllAssetsRest
+IGetAssetRest
+IGetBalancesRest
+IGetKlinesRest
+IGetOrderBookRest
+IGetRecentTradesRest
+IGetSpotSymbolsRest
+IGetTickerRest
+IGetAllTickersRest
+IPlaceSpotOrderRest
+IGetSpotOrderRest
+IGetOpenSpotOrdersRest
+IGetClosedSpotOrdersRest
+ICancelSpotOrderRest
 ```
 
 Important shared behavior:
@@ -499,14 +505,14 @@ Important shared behavior:
 - Shared order IDs are represented by the common string-based `SharedId`, while native order IDs are `long`.
 - Shared `GetSpotOrderTradesAsync` and `GetSpotUserTradesAsync` are explicitly unsupported because Tapbit exposes no user-trade retrieval endpoint.
 
-Call `Discover()` instead of assuming every method inherited from `ISpotOrderRestClient` is operational.
+Use the exchange-level `ITapbitSharedApiClient` aggregate's `GetCapability(...)` or `GetCapabilities(...)` methods for runtime capability lookup; use an API surface's `.SharedApi` property when the transport and API are known.
 
 ## Shared Symbol Catalog
 
 Retrieve symbols before relying on the shared catalog:
 
 ```csharp
-var sharedSymbols = (ISpotSymbolRestClient)new TapbitRestClient().SpotApi.SharedClient;
+var sharedSymbols = (IGetSpotSymbolsRest)new TapbitRestClient().SpotApi.SharedApi;
 var result = await sharedSymbols.GetSpotSymbolsAsync(new GetSymbolsRequest());
 if (!result.Success)
 {
@@ -570,7 +576,7 @@ Invalid quantity/price/notional: validate against TapbitSymbol precision and min
 Insufficient balance or rejected order: usually permanent; surface to the caller.
 Unknown order: verify the numeric order id and account. May be expected after lifecycle changes.
 Rate limit, network, or 5xx failure: may be transient; retry only when Error.IsTransient is true.
-Unsupported shared endpoint: inspect Discover() and endpoint options; do not retry.
+Use the exchange-level `ITapbitSharedApiClient` aggregate's `GetCapability(...)` or `GetCapabilities(...)` methods for runtime capability lookup; use an API surface's `.SharedApi` property when the transport and API are known.
 ```
 
 Do not assume Binance error codes. Prefer `Error.Code`, `Error.Message`, `Error.ErrorType`, and `Error.IsTransient`.
@@ -623,7 +629,7 @@ Before finalizing generated code:
 - Do order lookup and cancellation omit the symbol?
 - Are batch top-level and per-item results both checked?
 - Does it avoid nonexistent account info, deposit, withdraw, transfer, and user-trade methods?
-- Does shared code call `Discover()` before relying on optional endpoints?
+- Use the exchange-level `ITapbitSharedApiClient` aggregate's `GetCapability(...)` or `GetCapabilities(...)` methods for runtime capability lookup; use an API surface's `.SharedApi` property when the transport and API are known.
 - Does tracker code specify `TrackedSymbols` and set `TrackTrades = false`?
 - Does retry logic avoid blindly retrying order placement?
 

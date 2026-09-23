@@ -16,4 +16,28 @@ namespace Tapbit.Net.Interfaces.Clients.SpotApi
         ISpotOrderRestClient
     {
     }
+
+    /// <summary>
+    /// Shared API interface. Shared APIs provide a common,
+    /// exchange-independent contract for accessing functionality across different
+    /// exchange client libraries.
+    /// </summary>
+    public interface ITapbitRestClientSpotSharedApi :
+        IGetAssetRest,
+        IGetAllAssetsRest,
+        IGetBalancesRest,
+        IGetKlinesRest,
+        IGetOrderBookRest,
+        IGetRecentTradesRest,
+        IGetSpotSymbolsRest,
+        IGetTickerRest,
+        IGetAllTickersRest,
+        IPlaceSpotOrderRest,
+        IGetSpotOrderRest,
+        IGetOpenSpotOrdersRest,
+        IGetClosedSpotOrdersRest,
+        ICancelSpotOrderRest
+    {
+
+    }
 }

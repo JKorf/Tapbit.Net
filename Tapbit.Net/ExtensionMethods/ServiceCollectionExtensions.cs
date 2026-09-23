@@ -33,32 +33,11 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            var options = new TapbitOptions();
-            // Reset environment so we know if they're overridden
-            options.Rest.Environment = null!;
-            options.Socket.Environment = null!;
-            try
-            {
-                configuration.Bind(options);
-            }
-            catch (InvalidOperationException ex)
-            {
-                throw new InvalidOperationException("Invalid configuration provided", ex);
-            }
+            var options = TapbitOptions.CreateFromConfiguration(configuration);
 
-            if (options.Rest == null || options.Socket == null)
-                throw new ArgumentException("Options null");
-
-            var restEnvName = options.Rest.Environment?.Name ?? options.Environment?.Name ?? TapbitEnvironment.Live.Name;
-            var socketEnvName = options.Socket.Environment?.Name ?? options.Environment?.Name ?? TapbitEnvironment.Live.Name;
-            options.Rest.Environment = TapbitEnvironment.GetEnvironmentByName(restEnvName) ?? options.Rest.Environment!;
-            options.Rest.ApiCredentials = options.Rest.ApiCredentials ?? options.ApiCredentials;
-            options.Socket.Environment = TapbitEnvironment.GetEnvironmentByName(socketEnvName) ?? options.Socket.Environment!;
-            options.Socket.ApiCredentials = options.Socket.ApiCredentials ?? options.ApiCredentials;
-
-
-            services.AddSingleton(x => Options.Options.Create(options.Rest));
-            services.AddSingleton(x => Options.Options.Create(options.Socket));
+            services.AddSingleton(Options.Options.Create(options.Rest));
+            services.AddSingleton(Options.Options.Create(options.Socket));
+            services.AddSingleton(Options.Options.Create(options));
 
             return AddTapbitCore(services, options.SocketClientLifeTime);
         }
@@ -73,21 +52,11 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services,
             Action<TapbitOptions>? optionsDelegate = null)
         {
-            var options = new TapbitOptions();
-            // Reset environment so we know if they're overridden
-            options.Rest.Environment = null!;
-            options.Socket.Environment = null!;
-            optionsDelegate?.Invoke(options);
-            if (options.Rest == null || options.Socket == null)
-                throw new ArgumentException("Options null");
+            var options = TapbitOptions.Create(optionsDelegate);
 
-            options.Rest.Environment = options.Rest.Environment ?? options.Environment ?? TapbitEnvironment.Live;
-            options.Rest.ApiCredentials = options.Rest.ApiCredentials ?? options.ApiCredentials;
-            options.Socket.Environment = options.Socket.Environment ?? options.Environment ?? TapbitEnvironment.Live;
-            options.Socket.ApiCredentials = options.Socket.ApiCredentials ?? options.ApiCredentials;
-
-            services.AddSingleton(x => Options.Options.Create(options.Rest));
-            services.AddSingleton(x => Options.Options.Create(options.Socket));
+            services.AddSingleton(Options.Options.Create(options.Rest));
+            services.AddSingleton(Options.Options.Create(options.Socket));
+            services.AddSingleton(Options.Options.Create(options));
 
             return AddTapbitCore(services, options.SocketClientLifeTime);
         }
@@ -115,6 +84,12 @@ namespace Microsoft.Extensions.DependencyInjection
                     x.GetRequiredService<IOptions<TapbitRestOptions>>()));
 
             services.RegisterSharedRestInterfaces(x => x.GetRequiredService<ITapbitRestClient>().SpotApi.SharedClient);
+
+            services.RegisterSharedApiClient<
+                ITapbitSharedApiClient,
+                TapbitSharedApiClient>(sharedApis => sharedApis
+                    .Add(client => client.SpotRest)
+                    );
 
             return services;
         }

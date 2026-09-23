@@ -1,3 +1,4 @@
+using CryptoExchange.Net.Interfaces.Clients;
 using CryptoExchange.Net.SharedApis;
 using CryptoExchange.Net.Trackers.UserData;
 using CryptoExchange.Net.Trackers.UserData.Objects;
@@ -24,10 +25,15 @@ namespace Tapbit.Net
             SpotUserDataTrackerConfig? config = null,
             ExchangeParameters? exchangeParameters = null) : base(
                 logger,
-                restClient.SpotApi.SharedClient,
-                restClient.SpotApi.SharedClient,
+                restClient.SpotApi.SharedApi,
+
+                restClient.SpotApi.SharedApi,
                 null,
-                restClient.SpotApi.SharedClient,
+
+                restClient.SpotApi.SharedApi,
+                restClient.SpotApi.SharedApi,
+                null,
+
                 null,
                 null,
                 userIdentifier,
