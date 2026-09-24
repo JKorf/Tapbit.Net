@@ -4,7 +4,7 @@
 
 Tapbit.Net is a strongly typed client library for the Tapbit spot REST API. It is part of the CryptoExchange.Net ecosystem and uses the same result, authentication, logging, rate limiting, dependency injection, shared API, and tracker patterns as other JKorf exchange libraries.
 
-Current package version in this repository: 1.0.0.
+Current package version in this repository: 1.1.0.
 CryptoExchange.Net dependency/source reference: 12.5.0.
 Target frameworks: netstandard2.0, netstandard2.1, net8.0, net9.0, net10.0.
 Native AOT: supported on compatible .NET targets.
