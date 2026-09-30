@@ -7,9 +7,9 @@
   <PropertyGroup>
     <PackageId>Tapbit.Net</PackageId>
     <Authors>JKorf</Authors>
-    <PackageVersion>1.1.0</PackageVersion>
-    <AssemblyVersion>1.1.0</AssemblyVersion>
-    <FileVersion>1.1.0</FileVersion>
+    <PackageVersion>1.2.0</PackageVersion>
+    <AssemblyVersion>1.2.0</AssemblyVersion>
+    <FileVersion>1.2.0</FileVersion>
     <Description>A high-performance .NET client library for the Tapbit spot REST API, providing strongly typed models, authentication, client-side rate limiting, and seamless integration with other CryptoExchange.Net based clients.</Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageTags>Tapbit;Tapbit.Net;Tapbit Client;Tapbit API;CryptoCurrency;CryptoCurrency Exchange;CryptoExchange.Net</PackageTags>
