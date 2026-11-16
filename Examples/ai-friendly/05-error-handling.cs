@@ -4,7 +4,7 @@
 using CryptoExchange.Net.Objects;
 using Tapbit.Net.Clients;
 
-var client = new TapbitRestClient();
+using var client = new TapbitRestClient();
 
 var ticker = await client.SpotApi.ExchangeData.GetTickerAsync("BTC/USDT");
 if (ticker.Success)
@@ -27,6 +27,7 @@ Console.WriteLine(tickers.Success
     ? $"Received {tickers.Data.Length} tickers"
     : $"Ticker lookup failed: {tickers.Error}");
 
+// Public reads only: reconcile uncertain order changes before considering resubmission.
 async Task<HttpResult<T>> WithRetryAsync<T>(
     Func<Task<HttpResult<T>>> call,
     int maxAttempts)

@@ -1,23 +1,15 @@
-# AI-Friendly Examples
+# Tapbit.Net examples
 
-These self-contained console examples compile against the current Tapbit.Net API surface. Tapbit.Net currently supports spot REST; it does not expose Tapbit futures or WebSocket clients.
+Each file is an independent console program. Install `Tapbit.Net` in a console project and copy one program to `Program.cs`.
 
-| File | What it shows |
+| Program | Workflow |
 |---|---|
-| `01-spot-quickstart.cs` | Public ticker, authenticated balance, limit order placement, lookup, and cancellation |
-| `02-market-data.cs` | Symbol metadata, order book, klines, recent trades, and assets |
-| `03-batch-orders.cs` | Batch limit order placement, per-item results, and batch cancellation |
-| `04-multi-exchange.cs` | Shared API discovery and exchange-agnostic spot ticker access |
-| `05-error-handling.cs` | `HttpResult<T>`, structured errors, and transient-only retry |
+| [01-spot-quickstart.cs](01-spot-quickstart.cs) | Public market data and authenticated account/order operations |
+| [02-market-data.cs](02-market-data.cs) | Symbols, books, candles and public trades |
+| [03-batch-orders.cs](03-batch-orders.cs) | Live batches and per-item results |
+| [04-multi-exchange.cs](04-multi-exchange.cs) | Shared API V2 ticker and symbol catalog |
+| [05-error-handling.cs](05-error-handling.cs) | Results and bounded public-read retry |
 
-## Run an example
+Replace credential placeholders for intended private operations. Order examples change live account state and cancellation can race with fills. Read [operational considerations](../../.claude/skills/tapbit-net/references/safety.md) first. See [usage snippets](../../.claude/skills/tapbit-net/references/usage.md) for focused patterns.
 
-```bash
-dotnet new console -n MyTapbitApp
-cd MyTapbitApp
-dotnet add package Tapbit.Net
-# Copy one example into Program.cs.
-dotnet run
-```
-
-Private examples contain placeholder credentials. Replace them only when intentionally calling authenticated endpoints; order examples can place real orders.
+`AiExampleCompileTests` compiles these programs without executing exchange operations. This library is Spot REST-only.

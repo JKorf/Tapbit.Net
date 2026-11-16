@@ -83,17 +83,10 @@ For more examples and explanations, continue with the [Tapbit.Net documentation]
 
 ## AI / LLM documentation
 
-Tapbit.Net includes AI-oriented documentation and examples for code generation tools:
-
-|File|Purpose|
-|--|--|
-|[`AGENTS.md`](AGENTS.md)|Assistant skill with core Tapbit.Net patterns, pitfalls, and examples|
-|[`llms.txt`](llms.txt)|Short LLM index with links to docs, examples, and critical usage rules|
-|[`llms-full.txt`](llms-full.txt)|Detailed LLM context with endpoint routing, authentication levels, code patterns, and anti-hallucination checks|
-|[`docs/ai-api-map.md`](docs/ai-api-map.md)|Table-style intent-to-method map|
-|[`Examples/ai-friendly`](Examples/ai-friendly)|Compilable single-file examples for spot REST, authentication/trading, batch orders, shared APIs, and error handling|
-
-See [cryptoexchange-skills-hub](https://github.com/JKorf/cryptoexchange-skills-hub) for installable skills.
+- [Consumer skill](.claude/skills/tapbit-net/SKILL.md): library usage and API references.
+- [Repository development](AGENTS.md): implementation and validation instructions.
+- [Documentation index](llms.txt): local discovery links.
+- [Compilable examples](Examples/ai-friendly/): complete consumer programs.
 
 ## Shared / unified API
 
@@ -217,6 +210,3 @@ Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/s
 
 * Version 1.0.0 - 24 Aug 2026
     * Initial release
-
-
-

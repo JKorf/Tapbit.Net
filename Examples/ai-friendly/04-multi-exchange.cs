@@ -1,34 +1,33 @@
-// Exchange-agnostic ticker access through CryptoExchange.Net SharedApis.
+// Demonstrates portable REST and socket ticker capabilities through Shared API V2.
 // Setup: dotnet add package Tapbit.Net
 
-using CryptoExchange.Net.SharedApis;
 using Tapbit.Net.Clients;
+using CryptoExchange.Net.SharedApis;
 
-var tapbit = new TapbitRestClient();
-var shared = tapbit.SpotApi.SharedClient;
-
-var info = shared.Discover();
-var supported = info.Features
-    .Where(x => x.Supported)
-    .Select(x => x.EndpointName);
-
-Console.WriteLine($"{info.Exchange} {info.TypeName}: {string.Join(", ", supported)}");
-
-ISpotTickerRestClient tickerClient = shared;
+using var restClient = new TapbitRestClient();
+IGetTickerRest ticker = restClient.SpotApi.SharedApi;
 var symbol = new SharedSymbol(TradingMode.Spot, "BTC", "USDT");
-await PrintTickerAsync(tickerClient, symbol);
+await PrintTickerAsync(ticker, symbol);
 
-async Task PrintTickerAsync(ISpotTickerRestClient client, SharedSymbol requestedSymbol)
+IGetSpotSymbolsRest symbolsClient = restClient.SpotApi.SharedApi;
+var symbols = await symbolsClient.GetSpotSymbolsAsync(new GetSymbolsRequest());
+if (!symbols.Success)
 {
-    var result = await client.GetSpotTickerAsync(new GetTickerRequest(requestedSymbol));
+    Console.WriteLine(symbols.Error);
+    return;
+}
+foreach (var item in symbols.Data.Take(5))
+    Console.WriteLine($"{item.Name}: {item.BaseAsset}/{item.QuoteAsset}");
+var catalog = symbolsClient.SpotSymbolCatalog;
+
+// Another exchange can supply IGetTickerRest without changing this function.
+static async Task PrintTickerAsync(IGetTickerRest client, SharedSymbol symbol)
+{
+    var result = await client.GetTickerAsync(new GetTickerRequest(symbol));
     if (!result.Success)
     {
-        Console.WriteLine($"[{client.Exchange}] Failed: {result.Error}");
+        Console.WriteLine(result.Error);
         return;
     }
-
-    Console.WriteLine($"[{client.Exchange}] {result.Data.Symbol}: {result.Data.LastPrice}");
+    Console.WriteLine($"{result.Data.Symbol}: {result.Data.LastPrice}");
 }
-
-// The same PrintTickerAsync method accepts another exchange library's
-// ISpotTickerRestClient implementation. SharedSymbol avoids hard-coding Tapbit's BTC/USDT format.

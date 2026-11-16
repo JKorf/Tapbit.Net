@@ -7,7 +7,7 @@ using Tapbit.Net.Enums;
 
 const string symbol = "BTC/USDT";
 
-var publicClient = new TapbitRestClient();
+using var publicClient = new TapbitRestClient();
 var ticker = await publicClient.SpotApi.ExchangeData.GetTickerAsync(symbol);
 if (!ticker.Success)
 {
@@ -17,7 +17,7 @@ if (!ticker.Success)
 
 Console.WriteLine($"{symbol} last price: {ticker.Data.LastPrice}");
 
-var privateClient = new TapbitRestClient(options =>
+using var privateClient = new TapbitRestClient(options =>
 {
     options.ApiCredentials = new TapbitCredentials("API_KEY", "API_SECRET");
 });

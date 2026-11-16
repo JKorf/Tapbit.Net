@@ -1,92 +1,51 @@
----
-name: tapbit-net
-description: Use Tapbit.Net when generating C#/.NET code for Tapbit spot REST market data, balances, limit orders, batch orders, or CryptoExchange.Net SharedApis. Do not use it for Tapbit futures or WebSocket requests because those clients are not exposed by the current library.
----
+# Working on Tapbit.Net
 
-# Tapbit.Net
+For library development, use this file. For code that consumes the library, read the [Tapbit.Net skill](.claude/skills/tapbit-net/SKILL.md). [llms.txt](llms.txt) indexes the remaining documentation.
 
-Use `TapbitRestClient` for Tapbit integrations instead of raw `HttpClient` calls. The library handles authentication, signing, rate limiting, serialization, and the CryptoExchange.Net result pattern.
+## Repository layout
 
-## Current API surface
+- [Client interfaces](Tapbit.Net/Interfaces/Clients/): public endpoint signatures and XML documentation.
+- [Clients](Tapbit.Net/Clients/): REST and Shared API implementations, grouped by API and transport.
+- [Models](Tapbit.Net/Objects/Models/), [options](Tapbit.Net/Objects/Options/), and [enums](Tapbit.Net/Enums/): wire models and configuration.
+- [Unit tests](Tapbit.Net.UnitTests/): request/response fixtures and example compilation.
+- [AI-friendly examples](Examples/ai-friendly/): complete consumer programs.
 
-Tapbit.Net currently exposes only:
+## Build and validation
 
-```text
-TapbitRestClient
-  .SpotApi
-    .ExchangeData
-    .Account
-    .Trading
-    .SharedApi
+Run commands from the repository root. Use the SDK configured in the [build workflow](.github/workflows/dotnet.yml); targets and dependencies are defined in the [library project](Tapbit.Net/Tapbit.Net.csproj).
+
+```sh
+dotnet restore Tapbit.Net.sln
+dotnet build Tapbit.Net.sln --no-restore
+dotnet test Tapbit.Net.UnitTests/Tapbit.Net.UnitTests.csproj --no-build --filter "FullyQualifiedName!~IntegrationTests"
 ```
 
-Do not generate `TapbitSocketClient`, `FuturesApi`, `UsdtFuturesApi`, `Subscribe...` methods, market orders, or user-trade endpoints. They are not part of the current public API. The tracker infrastructure is separate from a native Tapbit WebSocket client, and user-trade tracking is unsupported.
+Debug builds select a subset of frameworks. To check every supported target:
 
-## Setup and results
-
-```csharp
-using Tapbit.Net;
-using Tapbit.Net.Clients;
-
-var client = new TapbitRestClient(options =>
-{
-    options.ApiCredentials = new TapbitCredentials("API_KEY", "API_SECRET");
-});
+```sh
+dotnet build Tapbit.Net/Tapbit.Net.csproj -p:BuildAllFrameworks=true
 ```
 
-Public market data works without credentials. Account and trading endpoints require `TapbitCredentials`. REST calls return `HttpResult<T>`; check `.Success` before reading `.Data`.
+Run focused tests for the change. For edits to consumer examples:
 
-```csharp
-var ticker = await client.SpotApi.ExchangeData.GetTickerAsync("BTC/USDT");
-if (!ticker.Success)
-{
-    Console.WriteLine(ticker.Error);
-    return;
-}
-
-Console.WriteLine(ticker.Data.LastPrice);
+```sh
+dotnet test Tapbit.Net.UnitTests/Tapbit.Net.UnitTests.csproj --filter FullyQualifiedName~AiExampleCompileTests
 ```
 
-Tapbit symbols use a slash, such as `BTC/USDT`. `TapbitExchange.FormatSymbol("BTC", "USDT", TradingMode.Spot)` produces the exchange format.
+That test compiles the examples; it does not execute their exchange operations or validate Markdown snippets. The normal test command above excludes integration fixtures. The native REST integration fixture has `Run = false`; Shared REST integration can be enabled with `INTEGRATION=1`. Inspect integration fixtures before running the unfiltered CI test command; they can contact the exchange. Do not enable authenticated exchange calls as part of routine validation.
 
-## Endpoint routing
+## Implementation conventions
 
-- Market data: `SpotApi.ExchangeData` provides server time, symbols, tickers, order books, klines, recent trades, and asset/network metadata.
-- Account: `SpotApi.Account` provides all balances or one balance by asset.
-- Trading: `SpotApi.Trading` provides limit order placement, batch placement, cancellation, batch cancellation, open orders, closed orders, and order lookup.
-- Shared APIs: `SpotApi.SharedApi` implements strict V2 capabilities for assets, balances, market data, symbols, tickers, and spot order placement, retrieval, listing, and cancellation. These include `IGetAssetRest`, `IGetAllAssetsRest`, `IGetTickerRest`, `IGetAllTickersRest`, `IPlaceSpotOrderRest`, `IGetSpotOrderRest`, `IGetOpenSpotOrdersRest`, `IGetClosedSpotOrdersRest`, and `ICancelSpotOrderRest`.
+- Use the matching client interface and a neighboring endpoint implementation as the starting point. Preserve endpoint metadata, serialization, signing, rate limits, and cancellation behavior.
+- Update public interfaces and XML documentation together with implementations. Add meaningful request/response coverage when behavior changes.
+- Keep Shared API adapters consistent with native endpoint behavior; verify capability support and trading modes against the implemented surface.
+- Preserve serialization compatibility and source-generated JSON metadata when changing models.
+- Keep changes compatible with every target in the library project; gate framework-specific APIs where required.
 
-## Limit order example
+## AI documentation ownership
 
-```csharp
-using Tapbit.Net.Enums;
-
-var order = await client.SpotApi.Trading.PlaceOrderAsync(
-    symbol: "BTC/USDT",
-    side: OrderSide.Buy,
-    quantity: 0.001m,
-    price: 50000m);
-
-if (order.Success)
-    Console.WriteLine(order.Data.OrderId);
-```
-
-Order placement accepts side, base-asset quantity, and price. It does not accept an order-type argument because the current Tapbit surface supports limit orders only. `GetOrderAsync` and `CancelOrderAsync` take only the order id.
-
-## Dependency injection
-
-```csharp
-services.AddTapbit(options =>
-{
-    options.Rest.ApiCredentials = new TapbitCredentials("API_KEY", "API_SECRET");
-});
-```
-
-Inject `ITapbitRestClient`. Reuse clients in long-running applications.
-
-## References
-
-- API map: `docs/ai-api-map.md`
-- Compilable examples: `Examples/ai-friendly/`
-- Source interfaces: `Tapbit.Net/Interfaces/Clients/`
-- Documentation: https://cryptoexchange.jkorf.dev/docs/exchange-clients?library=Tapbit.Net
+- [SKILL.md](.claude/skills/tapbit-net/SKILL.md) owns consumer conventions and routes to detailed skill references.
+- [API surfaces](.claude/skills/tapbit-net/references/api-surfaces.md) owns endpoint routing; [usage](.claude/skills/tapbit-net/references/usage.md) owns snippets.
+- Link to those files instead of repeating API guides here or in tool-specific instructions.
+- Keep skill links relative. References outside the skill are checkout-only; packaged guidance must remain usable without repository sources.
+- The project packs [.claude/skills](.claude/skills/) into `skills/` in NuGet. After changing its layout, inspect package entries and verify referenced resources are included.

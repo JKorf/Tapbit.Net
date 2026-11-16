@@ -6,7 +6,7 @@ using Tapbit.Net.Clients;
 using Tapbit.Net.Enums;
 
 const string symbol = "BTC/USDT";
-var client = new TapbitRestClient();
+using var client = new TapbitRestClient();
 
 var symbolInfo = await client.SpotApi.ExchangeData.GetSymbolAsync(symbol);
 if (!symbolInfo.Success)

@@ -6,7 +6,7 @@ using Tapbit.Net.Clients;
 using Tapbit.Net.Enums;
 using Tapbit.Net.Objects.Models;
 
-var client = new TapbitRestClient(options =>
+using var client = new TapbitRestClient(options =>
 {
     options.ApiCredentials = new TapbitCredentials("API_KEY", "API_SECRET");
 });
