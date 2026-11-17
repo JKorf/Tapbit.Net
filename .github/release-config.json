@@ -1,0 +1,18 @@
+{
+  "baseBranch": "main",
+  "sdk": "11.0.100",
+  "packages": [
+    {
+      "key": "tapbit",
+      "project": "Tapbit.Net/Tapbit.Net.csproj",
+      "testProjects": [
+        "Tapbit.Net.UnitTests/Tapbit.Net.UnitTests.csproj"
+      ],
+      "packageId": "Tapbit.Net",
+      "readme": "README.md",
+      "tagPrefix": "Tapbit.Net.",
+      "releaseIntegrationTests": false,
+      "publishToGitHubPackages": true
+    }
+  ]
+}
